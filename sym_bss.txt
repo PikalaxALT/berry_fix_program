@@ -1,0 +1,20 @@
+gUnknown_3001000: @ 0x03001000
+	.space 0x8
+
+gUnknown_3001008: @ 0x03001008
+	.space 0x8
+
+gUnknown_3001010: @ 0x03001010
+	.space 0xC
+
+gUnknown_300101C: @ 0x0300101C
+	.space 0x2
+
+gUnknown_300101E: @ 0x0300101E
+	.space 0x2
+
+gUnknown_3001020: @ 0x03001020
+	.space 0xC
+
+	.include "*libagb_flash.a:agb_flash.o"
+    .include "*libsiirtc.a:siirtc.o"

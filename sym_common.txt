@@ -1,0 +1,58 @@
+gUnknown_3001040: @ 0x03001040
+	.space 0x40
+
+gUnknown_3001080: @ 0x03001080
+	.space 0x4
+
+gUnknown_3001084: @ 0x03001084
+	.space 0xC
+
+gUnknown_3001090: @ 0x03001090
+	.space 0x100
+
+gUnknown_3001190: @ 0x03001190
+	.space 0x4
+
+gUnknown_3001194: @ 0x03001194
+	.space 0xC
+
+gUnknown_30011A0: @ 0x030011A0
+	.space 0x64
+
+gUnknown_3001204: @ 0x03001204
+	.space 0x4
+
+gUnknown_3001208: @ 0x03001208
+	.space 0x8
+
+gUnknown_3001210: @ 0x03001210
+	.space 0x8
+
+gUnknown_3001218: @ 0x03001218
+	.space 0x8
+
+gUnknown_3001220: @ 0x03001220
+	.space 0x4
+
+gUnknown_3001224: @ 0x03001224
+	.space 0x4
+
+gUnknown_3001228: @ 0x03001228
+	.space 0x4
+
+gUnknown_300122C: @ 0x0300122C
+	.space 0x4
+
+gUnknown_3001230: @ 0x03001230
+	.space 0x4
+
+gUnknown_3001234: @ 0x03001234
+	.space 0x4
+
+gUnknown_3001238:
+	.space 0x4
+
+gUnknown_300123C: @ 0x0300123C
+	.space 0x4
+
+	.include "*libagb_flash.a:agb_flash.o"

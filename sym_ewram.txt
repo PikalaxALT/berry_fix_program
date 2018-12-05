@@ -1,0 +1,14 @@
+gUnknown_2020000: @ 0x02020000
+	.space 0xFF4
+
+gUnknown_2020FF4:
+	.space 0xBDC
+
+gUnknown_2021BD0:
+	.space 0x64C8
+
+gUnknown_2028098:
+	.space 0x8
+
+gUnknown_20280A0:
+	.space 0x4
