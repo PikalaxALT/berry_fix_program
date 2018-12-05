@@ -1,4 +1,4 @@
-gUnknown_3001040: @ 0x03001040
+gIntrTable: @ 0x03001040
 	.space 0x40
 
 gUnknown_3001080: @ 0x03001080

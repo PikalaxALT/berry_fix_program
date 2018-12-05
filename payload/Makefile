@@ -8,17 +8,14 @@ else
 EXE :=
 endif
 
-GAME_CODE  := AGBJ
-MAKER_CODE := 01
-REVISION   := 0
-
 SHELL := /bin/bash -o pipefail
 
-CPPFLAGS := -I tools/agbcc/include -I tools/agbcc -iquote include -nostdinc -undef
+CPPFLAGS := -I ../tools/agbcc/include -I ../tools/agbcc -iquote include -nostdinc -undef
 
-ROM := berry_fix.gba
+ROM := payload.gba
+ROMLZ := $(ROM).lz
 OBJ_DIR := build
-CC1             := tools/agbcc/bin/agbcc$(EXE)
+CC1             := ../tools/agbcc/bin/agbcc$(EXE)
 override CFLAGS += -mthumb-interwork -Wimplicit -Wparentheses -Werror -O2 -fhex-asm
 
 
@@ -37,16 +34,16 @@ ASFLAGS := -mcpu=arm7tdmi
 
 LDFLAGS = -Map ../../$(MAP)
 
-LIB := -L ../tools/agbcc/lib -lagb_flash -lsiirtc -lagbsyscall -lgcc
+LIB := -L ../../tools/agbcc/lib -lagb_flash -lsiirtc -lagbsyscall -lgcc
 
 SHA1 := $(shell { command -v sha1sum || command -v shasum; } 2>/dev/null) -c
-GFX := tools/gbagfx/gbagfx$(EXE)
-AIF := tools/aif2pcm/aif2pcm$(EXE)
-MID := tools/mid2agb/mid2agb$(EXE)
-SCANINC := tools/scaninc/scaninc$(EXE)
-PREPROC := tools/preproc/preproc$(EXE)
-RAMSCRGEN := tools/ramscrgen/ramscrgen$(EXE)
-FIX := tools/gbafix/gbafix$(EXE)
+GFX := ../tools/gbagfx/gbagfx$(EXE)
+AIF := ../tools/aif2pcm/aif2pcm$(EXE)
+MID := ../tools/mid2agb/mid2agb$(EXE)
+SCANINC := ../tools/scaninc/scaninc$(EXE)
+PREPROC := ../tools/preproc/preproc$(EXE)
+RAMSCRGEN := ../tools/ramscrgen/ramscrgen$(EXE)
+FIX := ../tools/gbafix/gbafix$(EXE)
 
 # Clear the default suffixes
 .SUFFIXES:
@@ -82,7 +79,7 @@ SUBDIRS  := $(sort $(dir $(OBJS)))
 
 $(shell mkdir -p $(SUBDIRS))
 
-rom: $(ROM)
+rom: $(ROMLZ)
 
 # For contributors to make sure a change didn't affect the contents of the ROM.
 compare: $(ROM)
@@ -137,22 +134,27 @@ else
 $(DATA_ASM_BUILDDIR)/%.o: data_dep = $(shell $(SCANINC) $(DATA_ASM_SUBDIR)/$*.s)
 endif
 
-payload/payload.gba:
-	$(MAKE) -C payload/
-
-data/payload.gba.lz: payload/payload.gba
-	$(GFX) $< $@
-
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s $$(data_dep)
 	$(PREPROC) $< charmap.txt | $(CPP) -I include | $(AS) $(ASFLAGS) -o $@
 
 $(SONG_BUILDDIR)/%.o: $(SONG_SUBDIR)/%.s
 	$(AS) $(ASFLAGS) -I sound -o $@ $<
 
-$(ELF): ld_script.txt $(OBJS)
-	cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../ld_script.txt -Map ../${@:%.elf=%.map} -o ../$@ $(LIB)
+$(OBJ_DIR)/sym_bss.ld: sym_bss.txt
+	$(RAMSCRGEN) .bss $< ENGLISH > $@
+
+$(OBJ_DIR)/sym_common.ld: sym_common.txt $(C_OBJS) $(wildcard common_syms/*.txt)
+	$(RAMSCRGEN) COMMON $< ENGLISH -c $(C_BUILDDIR),common_syms,../tools/agbcc/lib > $@
+
+$(OBJ_DIR)/sym_ewram.ld: sym_ewram.txt
+	$(RAMSCRGEN) ewram_data $< ENGLISH > $@
+
+$(OBJ_DIR)/ld_script.ld: ld_script.txt $(OBJ_DIR)/sym_bss.ld $(OBJ_DIR)/sym_common.ld $(OBJ_DIR)/sym_ewram.ld
+	cd $(OBJ_DIR) && sed -f ../../ld_script.sed ../$< | sed "s#tools/#../tools/#g" > ld_script.ld
+
+$(ELF): $(OBJ_DIR)/ld_script.ld $(OBJS)
+	cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ld_script.ld -Map ../${@:%.elf=%.map} -o ../$@ $(LIB)
 
 $(ROM): $(ELF)
 	$(OBJCOPY) -O binary $< $@
-	$(FIX) $@ -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 

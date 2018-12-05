@@ -74,10 +74,9 @@ _02010064:
 	ands r0, r1, #8
 _020100DC:
 	strh r0, [r3, #2]
-	ldr r1, _020100F0
+	ldr r1, =gIntrTable
 	add r1, r1, r2
 	ldr r0, [r1]
 	bx r0
-	.align 2, 0
-_020100F0: .4byte gUnknown_3001040
+	.pool
 	.size IntrMain, .-IntrMain

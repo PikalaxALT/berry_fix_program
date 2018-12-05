@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="4a9792bd-c595-4c53-8bfc-afbd80544a60" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/berry_fix.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/asm/berry_fix_header.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/asm/loader.s" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/asm.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/battle_ai_script.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/battle_anim_script.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/battle_script.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/contest_ai_script.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/ec.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/event.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/field_effect_script.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/function.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/m4a.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/map.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/movement.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/music_voice.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/pokemon_data.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/asm/macros/window.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/charmap.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/battle_frontier_constants.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/berry_constants.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/constants.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/contest_constants.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/contest_move_effects.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/gba_constants.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/m4a_constants.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/misc_constants.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/constants/pokemon_data_constants.inc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/data/data.s" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/ld_script.sed" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/ld_script.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/payload/rom.sha1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/aif2pcm/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/aif2pcm/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/aif2pcm/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/aif2pcm/extended.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/aif2pcm/main.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/bin2c/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/bin2c/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/bin2c/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/bin2c/bin2c.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbafix/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbafix/COPYING" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbafix/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbafix/gbafix.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/convert_png.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/convert_png.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/font.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/font.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/gfx.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/gfx.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/global.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/jasc_pal.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/jasc_pal.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/lz.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/lz.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/main.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/options.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/rl.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/rl.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/util.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/gbagfx/util.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/agb.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/agb.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/error.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/error.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/main.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/main.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/midi.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/midi.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/tables.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/mid2agb/tables.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/asm_file.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/asm_file.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/c_file.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/c_file.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/char_util.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/charmap.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/charmap.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/preproc.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/preproc.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/string_parser.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/string_parser.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/utf8.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/preproc/utf8.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/char_util.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/elf.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/elf.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/main.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/ramscrgen.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/sym_file.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/ramscrgen/sym_file.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/convert_png.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/convert_png.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/font.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/font.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/gfx.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/global.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/main.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/util.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/rsfont/util.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/asm_file.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/asm_file.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/c_file.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/c_file.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/scaninc.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/scaninc/scaninc.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asm/crt0.s" beforeDir="false" afterPath="$PROJECT_DIR$/payload/asm/crt0.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asm/main.s" beforeDir="false" afterPath="$PROJECT_DIR$/payload/asm/main.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common_syms/agb_flash.txt" beforeDir="false" afterPath="$PROJECT_DIR$/payload/common_syms/agb_flash.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/data.s" beforeDir="false" afterPath="$PROJECT_DIR$/data/data.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphics/unk_13758.png" beforeDir="false" afterPath="$PROJECT_DIR$/payload/graphics/unk_13758.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ld_script.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ld_script.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rom.sha1" beforeDir="false" afterPath="$PROJECT_DIR$/rom.sha1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sym_bss.txt" beforeDir="false" afterPath="$PROJECT_DIR$/payload/sym_bss.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sym_common.txt" beforeDir="false" afterPath="$PROJECT_DIR$/payload/sym_common.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sym_ewram.txt" beforeDir="false" afterPath="$PROJECT_DIR$/payload/sym_ewram.txt" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <splitter split-orientation="horizontal" split-proportion="0.32279608">
+      <split-first>
+        <leaf>
+          <file pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/Makefile">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="551">
+                  <caret line="146" column="65" lean-forward="true" selection-start-line="146" selection-start-column="65" selection-end-line="146" selection-end-column="65" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/asmdiff.sh">
+              <provider selected="true" editor-type-id="text-editor" />
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="270">
+                  <caret line="18" column="20" selection-start-line="18" selection-start-column="20" selection-end-line="18" selection-end-column="20" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/payload/asm/crt0.s">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="759">
+                  <caret line="80" column="9" selection-start-line="80" selection-start-column="9" selection-end-line="80" selection-end-column="9" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/payload/sym_bss.txt">
+              <provider selected="true" editor-type-id="text-editor" />
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/payload/sym_common.txt">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="285">
+                  <caret line="19" column="8" selection-start-line="19" selection-start-column="8" selection-end-line="19" selection-end-column="8" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/.gitignore">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="465">
+                  <caret line="31" lean-forward="true" selection-start-line="31" selection-end-line="31" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/payload/data/data.s">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="645">
+                  <caret line="43" column="34" selection-start-line="43" selection-start-column="34" selection-end-line="43" selection-end-column="34" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/rom.sha1">
+              <provider selected="true" editor-type-id="text-editor">
+                <state>
+                  <caret column="40" selection-start-column="40" selection-end-column="40" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <splitter split-orientation="horizontal" split-proportion="0.5">
+          <split-first>
+            <leaf>
+              <file pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/payload/ld_script.txt">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="332">
+                      <caret line="27" column="40" selection-start-line="27" selection-start-column="40" selection-end-line="27" selection-end-column="40" />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/payload/asm/main.s">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="195">
+                      <caret line="13" column="29" selection-start-line="13" selection-start-column="13" selection-end-line="13" selection-end-column="29" />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file pinned="false" current-in-tab="true">
+                <entry file="file://$PROJECT_DIR$/tools/gbagfx/lz.c">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="-339">
+                      <caret line="86" column="18" lean-forward="true" selection-start-line="86" selection-start-column="18" selection-end-line="86" selection-end-column="18" />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/data/data.s">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="30">
+                      <caret line="2" column="11" selection-start-line="2" selection-start-column="11" selection-end-line="2" selection-end-column="11" />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+            </leaf>
+          </split-first>
+          <split-second>
+            <leaf>
+              <file pinned="false" current-in-tab="true">
+                <entry file="file://$PROJECT_DIR$/tmp.s">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="105">
+                      <caret line="7" selection-start-line="7" selection-end-line="7" />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+            </leaf>
+          </split-second>
+        </splitter>
+      </split-second>
+    </splitter>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>../tools</find>
+      <find>LOADER</find>
+      <find>tools</find>
+      <find>R</find>
+      <find>EWRAM_ORIG</find>
+      <find>EXEC_ORIG</find>
+      <find>_020101A0</find>
+      <find>_020100F0</find>
+      <find>1040</find>
+      <find>sym_</find>
+      <find>gUnknown_2012C90</find>
+      <find>gUnknown_2012C98</find>
+      <find>fail</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>tools</replace>
+      <replace>BOOT</replace>
+      <replace>gCode</replace>
+      <replace>../tools</replace>
+      <replace>gIntrTable</replace>
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/payload/Makefile" />
+        <option value="$PROJECT_DIR$/payload/rom.sha1" />
+        <option value="$PROJECT_DIR$/data/data.s" />
+        <option value="$PROJECT_DIR$/asm/loader.s" />
+        <option value="$PROJECT_DIR$/payload/ld_script.txt" />
+        <option value="$PROJECT_DIR$/ld_script.txt" />
+        <option value="$PROJECT_DIR$/rom.sha1" />
+        <option value="$PROJECT_DIR$/Makefile" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.py" />
+        <option value="$PROJECT_DIR$/payload/asm/crt0.s" />
+        <option value="$PROJECT_DIR$/payload/sym_common.txt" />
+        <option value="$PROJECT_DIR$/payload/asm/main.s" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-1408" />
+    <option name="y" value="-1417" />
+    <option name="width" value="2560" />
+    <option name="height" value="1417" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="berry_fix" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="berry_fix" type="462c0819:PsiDirectoryNode" />
+              <item name="asm" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="berry_fix" type="462c0819:PsiDirectoryNode" />
+              <item name="payload" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="berry_fix" type="462c0819:PsiDirectoryNode" />
+              <item name="payload" type="462c0819:PsiDirectoryNode" />
+              <item name="asm" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="berry_fix" type="462c0819:PsiDirectoryNode" />
+              <item name="payload" type="462c0819:PsiDirectoryNode" />
+              <item name="data" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="berry_fix" type="462c0819:PsiDirectoryNode" />
+              <item name="payload" type="462c0819:PsiDirectoryNode" />
+              <item name="graphics" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="berry_fix" type="462c0819:PsiDirectoryNode" />
+              <item name="tools" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="berry_fix" type="462c0819:PsiDirectoryNode" />
+              <item name="tools" type="462c0819:PsiDirectoryNode" />
+              <item name="gbagfx" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Scratches and Consoles" type="1a2a3e82:ScratchProjectViewPane$MyProjectNode" />
+            </path>
+            <path>
+              <item name="berry_fix" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Scratches and Consoles" type="1a2a3e82:ScratchProjectViewPane$MyProjectNode" />
+              <item name="Scratches" type="d62648e6:ScratchProjectViewPane$MyRootNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/asm" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4a9792bd-c595-4c53-8bfc-afbd80544a60" name="Default Changelist" comment="" />
+      <created>1544041991143</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1544041991143</updated>
+      <workItem from="1544041993199" duration="5170000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="5170000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-1408" y="-1417" width="2560" height="1417" extended-state="6" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.10802224" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Database Changes" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.490625" weight="0.32936803" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.475" weight="0.45799255" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Messages" order="7" sideWeight="0.4671875" weight="0.32936803" />
+      <window_info anchor="bottom" id="CMake" order="8" weight="0.23122677" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50357425" side_tool="true" visible="true" weight="0.3290566" />
+      <window_info anchor="bottom" id="Version Control" order="10" />
+      <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49642575" visible="true" weight="0.3290566" />
+      <window_info anchor="right" id="Database" />
+      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="LuaJ" order="3" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/payload/Makefile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="26" selection-start-column="26" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/payload/rom.sha1">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="49" selection-start-column="49" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/asm/berry_fix_header.inc">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ld_script.sed">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/asm/loader.s">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1680">
+          <caret line="112" column="6" selection-start-line="112" selection-start-column="6" selection-end-line="112" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ld_script.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="465">
+          <caret line="31" selection-start-line="31" selection-end-line="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rom.sha1">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="40" selection-start-column="40" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/asmdiff.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="465">
+          <caret line="31" lean-forward="true" selection-start-line="31" selection-end-line="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="18" column="20" selection-start-line="18" selection-start-column="20" selection-end-line="18" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/payload/asm/crt0.s">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="759">
+          <caret line="80" column="9" selection-start-line="80" selection-start-column="9" selection-end-line="80" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/payload/sym_bss.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/payload/sym_common.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="8" selection-start-line="19" selection-start-column="8" selection-end-line="19" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/payload/ld_script.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="332">
+          <caret line="27" column="40" selection-start-line="27" selection-start-column="40" selection-end-line="27" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data/data.s">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="11" selection-start-line="2" selection-start-column="11" selection-end-line="2" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tmp.s">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" selection-start-line="7" selection-end-line="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/payload/data/data.s">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="645">
+          <caret line="43" column="34" selection-start-line="43" selection-start-column="34" selection-end-line="43" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Makefile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="551">
+          <caret line="146" column="65" lean-forward="true" selection-start-line="146" selection-start-column="65" selection-end-line="146" selection-end-column="65" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/payload/asm/main.s">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="195">
+          <caret line="13" column="29" selection-start-line="13" selection-start-column="13" selection-end-line="13" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/gbagfx/lz.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-339">
+          <caret line="86" column="18" lean-forward="true" selection-start-line="86" selection-start-column="18" selection-end-line="86" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
