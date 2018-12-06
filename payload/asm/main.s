@@ -157,7 +157,7 @@ _0201023C:
 	THUMB_FUNC_START sub_02010244
 sub_02010244: @ 0x02010244
 	push {r4, r5, r6, lr}
-	ldr r0, =RomHeaderGameCode
+	ldr r0, =RomHeaderGameCode + 3
 	ldrb r3, [r0]
 	adds r0, #0xd
 	ldrb r4, [r0]
@@ -241,7 +241,7 @@ sub_020102E8: @ 0x020102E8
 	ldrb r0, [r0]
 	cmp r0, #0x30
 	bne _02010314
-	ldr r0, =RomHeaderMakerCode
+	ldr r0, =RomHeaderMakerCode + 1
 	ldrb r0, [r0]
 	cmp r0, #0x31
 	bne _02010314
@@ -436,7 +436,7 @@ _02010486:
 sub_02010490: @ 0x02010490
 	push {lr}
 	sub sp, #4
-	ldr r3, =PLTT
+	ldr r3, =PLTT + 0x2
 	mov r1, sp
 	ldr r2, =0x00007FFF
 	adds r0, r2, #0
@@ -476,14 +476,14 @@ sub_020104DC: @ 0x020104DC
 	strh r0, [r1]
 	ldr r0, =REG_DMA3
 	str r1, [r0]
-	ldr r1, =VRAM
+	ldr r1, =VRAM + 0x8420
 	str r1, [r0, #4]
 	ldr r1, =0x81000C00
 	str r1, [r0, #8]
 	ldr r1, [r0, #8]
 	ldr r1, =gUnknown_2012D20
 	str r1, [r0]
-	ldr r1, =VRAM
+	ldr r1, =VRAM + 0x8600
 	str r1, [r0, #4]
 	ldr r1, =0x84000080
 	str r1, [r0, #8]
@@ -1510,7 +1510,7 @@ sub_02010C9C: @ 0x02010C9C
 	lsls r1, r1, #0x13
 	bl LZ77UnCompVram
 	ldr r0, =gUnknown_2012F2C
-	ldr r1, =VRAM
+	ldr r1, =VRAM + 0xe000
 	bl LZ77UnCompVram
 	ldr r0, =gUnknown_2012F0C
 	movs r1, #0xa0
@@ -2937,5 +2937,6 @@ _020118DC:
 _020118DE:
 	add sp, #4
 	pop {r1}
+	bx r1
 	THUMB_FUNC_END sub_0201189C
 
