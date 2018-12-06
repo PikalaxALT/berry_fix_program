@@ -1,0 +1,9 @@
+gIntrTable
+gUnknown_3001080
+gUnknown_3001084
+gUnknown_3001090
+gUnknown_3001190
+gUnknown_3001194
+gUnknown_30011A0
+gUnknown_3001204
+gUnknown_3001208

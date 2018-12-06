@@ -1,24 +1,28 @@
 #include <gba/gba.h>
 #include "rs.h"
 
-extern IntrFunc gIntrTable[13];
-extern u16 gUnknown_3001080;
-extern u16 gUnknown_3001084;
-extern u8 gUnknown_3001090[0x100];
-extern u32 gUnknown_3001194;
-extern u32 gUnknown_30011A0;
-extern u32 gUnknown_3001204;
-extern u32 gUnknown_3001208;
+BSS_DATA s32 gUnknown_3001000;
+IntrFunc gIntrTable[13];
+u16 gUnknown_3001080;
+u16 gUnknown_3001084;
+u8 gUnknown_3001090[0x100];
+u32 gUnknown_3001190;
+u32 gUnknown_3001194;
+u32 gUnknown_30011A0;
+u32 gUnknown_3001204;
+u32 gUnknown_3001208;
 
-extern u32 gUnknown_2020000;
+EWRAM_DATA u32 gUnknown_2020000;
 
 void IntrMain(void);
 void sub_02010C9C(void);
 void ReadKeys(void);
-void sub_0201031C(u32 *, void *, void *);
-
 void sub_020101C0(void);
 void sub_020101BC(void);
+s32 gUnknown_020102E8(void);
+void sub_0201031C(u32 *, void *, void *);
+
+void sub_02010D00(u32);
 
 const char gBerryFixGameCode[] = "AGBJ";
 const IntrFunc gIntrFuncPointers[] = {
@@ -45,7 +49,7 @@ const char gVersionData[][2] = {
     {'S', 1}
 };
 const char gRubyTitleAndCode[] = "POKEMON RUBYAXV";
-const char gSapphrieTitleAndCode[] = "POKEMON SAPPAXP";
+const char gSapphireTitleAndCode[] = "POKEMON SAPPAXP";
 
 void AgbMain(void)
 {
@@ -127,7 +131,7 @@ s32 sub_02010244(void)
                 return 3;
             }
         }
-        else if (sub_02010218(RomHeaderGameTitle, gSapphrieTitleAndCode, 15) == TRUE)
+        else if (sub_02010218(RomHeaderGameTitle, gSapphireTitleAndCode, 15) == TRUE)
         {
             if (r5 == 0)
                 return 4;
@@ -197,7 +201,7 @@ s32 sub_02010244(void)
         "\tb _020102E2\n"
         "\t.pool\n"
         "_020102B8:\n"
-        "\tldr r1, =gSapphrieTitleAndCode\n"
+        "\tldr r1, =gSapphireTitleAndCode\n"
         "\tadds r0, r4, #0\n"
         "\tmovs r2, #0xf\n"
         "\tbl sub_02010218\n"
@@ -231,4 +235,39 @@ s32 sub_020102E8(void)
         return sub_02010244();
     else
         return 6;
+}
+
+void sub_0201031C(u32 * a0, void * unused1, void * unused2)
+{
+    switch (*a0)
+    {
+        case 0:
+            sub_02010D00(0);
+            if (++gUnknown_3001000 >= 180)
+            {
+                gUnknown_3001000 = 0;
+                gUnknown_3001190 = 0;
+                switch (gUnknown_020102E8())
+                {
+                    case 2:
+                    case 3:
+                        ++(*a0);
+                        break;
+                    case 6:
+                        *a0 = 11;
+                        break;
+                    case 4:
+                    case 5:
+                        *a0 = 6;
+                        break;
+                }
+            }
+            break;
+        case 1:
+            if (sub_02010960())
+                ++(*a0);
+            else
+                *a0 = 11;
+            break;
+    }
 }
