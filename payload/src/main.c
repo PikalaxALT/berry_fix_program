@@ -12,16 +12,40 @@ extern u32 gUnknown_3001208;
 
 extern u32 gUnknown_2020000;
 
-extern void IntrMain(void);
-extern void sub_02010C9C(void);
-extern void ReadKeys(void);
-extern void sub_0201031C(u32 *, void *, void *);
+void IntrMain(void);
+void sub_02010C9C(void);
+void ReadKeys(void);
+void sub_0201031C(u32 *, void *, void *);
 
-extern u32 gBerryFixGameCode;
-extern const IntrFunc gIntrFuncPointers[13];
-extern const char gVersionData[6][2];
-extern const char gRubyTitleAndCode[16];
-extern const char gSapphrieTitleAndCode[16];
+void sub_020101C0(void);
+void sub_020101BC(void);
+
+const char gBerryFixGameCode[] = "AGBJ";
+const IntrFunc gIntrFuncPointers[] = {
+    sub_020101C0,
+    sub_020101BC,
+    sub_020101C0,
+    sub_020101C0,
+    sub_020101C0,
+    sub_020101C0,
+    sub_020101C0,
+    sub_020101C0,
+    sub_020101C0,
+    sub_020101C0,
+    NULL,
+    NULL,
+    NULL
+};
+const char gVersionData[6][2] = {
+    {'J', 1},
+    {'E', 2},
+    {'D', 1},
+    {'F', 1},
+    {'I', 1},
+    {'S', 1}
+};
+const char gRubyTitleAndCode[] = "POKEMON RUBYAXV";
+const char gSapphrieTitleAndCode[] = "POKEMON SAPPAXP";
 
 void AgbMain(void)
 {
@@ -30,7 +54,7 @@ void AgbMain(void)
     DmaCopy32(3, IntrMain, gUnknown_3001090, sizeof(gUnknown_3001090));
     INTR_VECTOR = gUnknown_3001090;
     REG_IE = INTR_FLAG_VBLANK;
-    if (RomHeaderMagic == 0x96 && *(u32 *)RomHeaderGameCode == gBerryFixGameCode)
+    if (RomHeaderMagic == 0x96 && *(u32 *)RomHeaderGameCode == *(u32 *)gBerryFixGameCode)
         REG_IE |= INTR_FLAG_GAMEPAK;
     REG_DISPSTAT = DISPSTAT_VBLANK_INTR;
     REG_IME = INTR_FLAG_VBLANK;

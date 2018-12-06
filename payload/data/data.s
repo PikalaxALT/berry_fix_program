@@ -4,45 +4,6 @@
 	.section .rodata
 	.align 2, 0
 
-gBerryFixGameCode::
-    .asciz "AGBJ"
-
-    .align 2
-gIntrFuncPointers::
-	.4byte sub_020101C0
-	.4byte sub_020101BC
-	.4byte sub_020101C0
-	.4byte sub_020101C0
-	.4byte sub_020101C0
-	.4byte sub_020101C0
-	.4byte sub_020101C0
-	.4byte sub_020101C0
-	.4byte sub_020101C0
-	.4byte sub_020101C0
-	.4byte NULL
-	.4byte NULL
-	.4byte NULL
-
-gVersionData::
-	.ascii "J" @ 0x4a
-	.byte 1
-	.ascii "E" @ 0x45
-	.byte 2
-	.ascii "D" @ 0x44
-	.byte 1
-	.ascii "F" @ 0x46
-	.byte 1
-	.ascii "I" @ 0x49
-	.byte 1
-	.ascii "S" @ 0x53
-	.byte 1
-
-gRubyTitleAndCode::
-    .asciz "POKEMON RUBYAXV"
-
-gSapphrieTitleAndCode::
-    .asciz "POKEMON SAPPAXP"
-
 gUnknown_2012CF8::
 	.2byte 0x0000 @ RGB(00, 00, 00)
 	.2byte 0x001f @ RGB(31, 00, 00)
