@@ -85,6 +85,7 @@ SECTIONS {
 		. += 4;
 		RomHeaderNintendoLogo = .;
 		. += 156;
+		RS_RomHeader = .;
         RomHeaderGameTitle = .;
         . += 12;
         RomHeaderGameCode = .;

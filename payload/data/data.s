@@ -1,26 +1,56 @@
+    .include "asm/macros.inc"
+    .include "constants/constants.inc"
+
 	.section .rodata
 	.align 2, 0
 
-gUnknown_2012C90::
-	.incbin "baserom.gba", 0x2C90, 0x8
+gBerryFixGameCode::
+    .asciz "AGBJ"
 
-gUnknown_2012C98::
-	.incbin "baserom.gba", 0x2C98, 0x24
+    .align 2
+gIntrFuncPointers::
+	.4byte sub_020101C0
+	.4byte sub_020101BC
+	.4byte sub_020101C0
+	.4byte sub_020101C0
+	.4byte sub_020101C0
+	.4byte sub_020101C0
+	.4byte sub_020101C0
+	.4byte sub_020101C0
+	.4byte sub_020101C0
+	.4byte sub_020101C0
+	.4byte NULL
+	.4byte NULL
+	.4byte NULL
 
-gUnknown_2012CBC::
-	.incbin "baserom.gba", 0x2CBC, 0x11
+gVersionData::
+	.ascii "J" @ 0x4a
+	.byte 1
+	.ascii "E" @ 0x45
+	.byte 2
+	.ascii "D" @ 0x44
+	.byte 1
+	.ascii "F" @ 0x46
+	.byte 1
+	.ascii "I" @ 0x49
+	.byte 1
+	.ascii "S" @ 0x53
+	.byte 1
 
-gUnknown_2012CCD::
-	.incbin "baserom.gba", 0x2CCD, 0xB
+gRubyTitleAndCode::
+    .asciz "POKEMON RUBYAXV"
 
-gUnknown_2012CD8::
-	.incbin "baserom.gba", 0x2CD8, 0x10
-
-gUnknown_2012CE8::
-	.incbin "baserom.gba", 0x2CE8, 0x10
+gSapphrieTitleAndCode::
+    .asciz "POKEMON SAPPAXP"
 
 gUnknown_2012CF8::
-	.incbin "baserom.gba", 0x2CF8, 0x28
+	.2byte 0x0000 @ RGB(00, 00, 00)
+	.2byte 0x001f @ RGB(31, 00, 00)
+	.2byte 0x03e0 @ RGB(00, 31, 00)
+	.2byte 0x7c00 @ RGB(00, 00, 31)
+
+	@ 2012D00
+	.space 0x20
 
 gUnknown_2012D20::
 	.incbin "baserom.gba", 0x2D20, 0x140
