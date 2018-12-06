@@ -10,7 +10,7 @@ u32 gUnknown_3001190;
 u32 gUnknown_3001194;
 u32 gUnknown_30011A0;
 u32 gUnknown_3001204;
-u32 gUnknown_3001208;
+u32 gGameVersion;
 
 EWRAM_DATA u32 gUnknown_2020000;
 
@@ -19,10 +19,16 @@ void sub_02010C9C(void);
 void ReadKeys(void);
 void sub_020101C0(void);
 void sub_020101BC(void);
-s32 gUnknown_020102E8(void);
 void sub_0201031C(u32 *, void *, void *);
+bool32 sub_0201189C(void);
+bool32 sub_02010960(void);
+bool32 sub_020109A8(u8 *);
+void sub_02010B2C(void);
+bool32 sub_02010B9C(void);
+bool8 sub_02010C80(u32);
 
 void sub_02010D00(u32);
+bool32 sub_02011864(void);
 
 const char gBerryFixGameCode[] = "AGBJ";
 const IntrFunc gIntrFuncPointers[] = {
@@ -86,14 +92,14 @@ void ReadKeys(void)
     gUnknown_3001080 = keyInput;
 }
 
-void sub_020101F4(const u8 * src, u16 * dest, u8 value)
+void fill_palette(const u8 * src, u16 * dest, u8 value)
 {
     s32 i;
     for (i = 0; src[i] != 0; i++)
         dest[i] = src[i] | value << 12;
 }
 
-bool32 sub_02010218(const char * src1, const char * src2, size_t size)
+bool32 berry_fix_memcmp(const char * src1, const char * src2, size_t size)
 {
     s32 i;
     for (i = 0; i < size; i++)
@@ -105,39 +111,39 @@ bool32 sub_02010218(const char * src1, const char * src2, size_t size)
 }
 
 #ifdef NONMATCHING
-s32 sub_02010244(void)
+s32 validate_rom_header_internal(void)
 {
-    s32 r3 = *(RomHeaderGameCode + 3);
-    s32 r4 = *RomHeaderSoftwareVersion;
-    s32 r5 = -1;
-    s32 r2;
-    for (r2 = 0; r2 < NELEMS(gVersionData); ++r2)
+    s32 languageCode = *(RomHeaderGameCode + 3);
+    s32 softwareVersion = *RomHeaderSoftwareVersion;
+    s32 shouldUpdate = -1;
+    s32 i;
+    for (i = 0; i < NELEMS(gVersionData); ++i)
     {
-        if (r3 == gVersionData[r2][0])
+        if (languageCode == gVersionData[i][0])
         {
-            r5 = r4 < gVersionData[r2][1];
+            shouldUpdate = softwareVersion < gVersionData[i][1];
             break;
         }
     }
-    if (r5 != -1)
+    if (shouldUpdate != -1)
     {
-        if (sub_02010218(RomHeaderGameTitle, gRubyTitleAndCode, 15) == TRUE)
+        if (berry_fix_memcmp(RomHeaderGameTitle, gRubyTitleAndCode, 15) == TRUE)
         {
-            if (r5 == 0)
+            if (shouldUpdate == 0)
                 return 5;
             else
             {
-                gUnknown_3001208 = 2;
+                gGameVersion = VERSION_RUBY;
                 return 3;
             }
         }
-        else if (sub_02010218(RomHeaderGameTitle, gSapphireTitleAndCode, 15) == TRUE)
+        else if (berry_fix_memcmp(RomHeaderGameTitle, gSapphireTitleAndCode, 15) == TRUE)
         {
-            if (r5 == 0)
+            if (shouldUpdate == 0)
                 return 4;
             else
             {
-                gUnknown_3001208 = 1;
+                gGameVersion = VERSION_SAPPHIRE;
                 return 2;
             }
         }
@@ -146,7 +152,7 @@ s32 sub_02010244(void)
 }
 #else
 NAKED
-s32 sub_02010244(void)
+s32 validate_rom_header_internal(void)
 {
     asm(".syntax unified\n"
         "\tpush {r4, r5, r6, lr}\n"
@@ -185,7 +191,7 @@ s32 sub_02010244(void)
         "\tldr r1, =gRubyTitleAndCode\n"
         "\tadds r0, r4, #0\n"
         "\tmovs r2, #0xf\n"
-        "\tbl sub_02010218\n"
+        "\tbl berry_fix_memcmp\n"
         "\tcmp r0, #1\n"
         "\tbne _020102B8\n"
         "\tcmp r5, #0\n"
@@ -194,7 +200,7 @@ s32 sub_02010244(void)
         "\tb _020102E2\n"
         "\t.pool\n"
         "_020102A8:\n"
-        "\tldr r1, =gUnknown_3001208\n"
+        "\tldr r1, =gGameVersion\n"
         "\tmovs r0, #2\n"
         "\tstr r0, [r1]\n"
         "\tmovs r0, #3\n"
@@ -204,7 +210,7 @@ s32 sub_02010244(void)
         "\tldr r1, =gSapphireTitleAndCode\n"
         "\tadds r0, r4, #0\n"
         "\tmovs r2, #0xf\n"
-        "\tbl sub_02010218\n"
+        "\tbl berry_fix_memcmp\n"
         "\tadds r1, r0, #0\n"
         "\tcmp r1, #1\n"
         "\tbne _020102E0\n"
@@ -214,7 +220,7 @@ s32 sub_02010244(void)
         "\tb _020102E2\n"
         "\t.pool\n"
         "_020102D4:\n"
-        "\tldr r0, =gUnknown_3001208\n"
+        "\tldr r0, =gGameVersion\n"
         "\tstr r1, [r0]\n"
         "\tmovs r0, #2\n"
         "\tb _020102E2\n"
@@ -229,16 +235,17 @@ s32 sub_02010244(void)
 }
 #endif
 
-s32 sub_020102E8(void)
+s32 validate_rom_header(void)
 {
-    if (*(const u8 *)0x080000B0 == '0' && *(const u8 *)0x080000B1 == '1' && *(const u8 *)0x080000B2 == 0x96)
-        return sub_02010244();
+    if (*RomHeaderMakerCode == '0' && *(RomHeaderMakerCode + 1) == '1' && *RomHeaderMagic == 0x96)
+        return validate_rom_header_internal();
     else
         return 6;
 }
 
 void sub_0201031C(u32 * a0, void * unused1, void * unused2)
 {
+    u8 sp0;
     switch (*a0)
     {
         case 0:
@@ -247,27 +254,91 @@ void sub_0201031C(u32 * a0, void * unused1, void * unused2)
             {
                 gUnknown_3001000 = 0;
                 gUnknown_3001190 = 0;
-                switch (gUnknown_020102E8())
+                switch (validate_rom_header())
                 {
-                    case 2:
-                    case 3:
+                    case 2: // Should Update Sapphire
+                    case 3: // Should Update Ruby
                         ++(*a0);
                         break;
-                    case 6:
+                    case 6: // Invalid header
                         *a0 = 11;
                         break;
-                    case 4:
-                    case 5:
+                    case 4: // Should not update Sapphire
+                    case 5: // Should not update Ruby
                         *a0 = 6;
                         break;
                 }
             }
             break;
         case 1:
-            if (sub_02010960())
+            if (!sub_02010960())
+                *a0 = 11;
+            else
+                ++(*a0);
+            break;
+        case 2:
+            if (sub_02010B9C() == TRUE)
                 ++(*a0);
             else
                 *a0 = 11;
+            break;
+        case 3:
+            if (sub_02010C80(0) == TRUE)
+                ++(*a0);
+            else
+                *a0 = 11;
+            break;
+        case 4:
+            if (sub_020109A8(&sp0) == TRUE)
+            {
+                if (sp0 == 0)
+                    ++(*a0);
+                else
+                    *a0 = 9;
+            }
+            else
+            {
+                if (sp0 != 1)
+                    *a0 = 7;
+                else
+                    ++(*a0);
+            }
+            break;
+        case 5:
+            sub_02010B2C();
+            gUnknown_3001190 |= 1;
+            *a0 = 9;
+            break;
+        case 9:
+            if (sub_02011864() == TRUE)
+                *a0 = 8;
+            else
+                *a0 = 10;
+            break;
+        case 10:
+            sub_02010D00(4);
+            if (sub_0201189C() == TRUE)
+            {
+                gUnknown_3001190 |= 1;
+                *a0 = 8;
+            }
+            else
+                *a0 = 11;
+            break;
+        case 8:
+            if (gUnknown_3001190 == 0)
+                *a0 = 6;
+            else
+                sub_02010D00(1);
+            break;
+        case 6:
+            sub_02010D00(3);
+            break;
+        case 7:
+            sub_02010D00(2);
+            break;
+        case 11:
+            sub_02010D00(2);
             break;
     }
 }

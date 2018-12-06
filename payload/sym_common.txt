@@ -22,7 +22,7 @@ gUnknown_30011A0: @ 0x030011A0
 gUnknown_3001204: @ 0x03001204
 	.space 0x4
 
-gUnknown_3001208: @ 0x03001208
+gGameVersion: @ 0x03001208
 	.space 0x8
 
 gUnknown_3001210: @ 0x03001210
