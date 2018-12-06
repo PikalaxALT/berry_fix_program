@@ -3,24 +3,12 @@
 
 #include <gba/gba.h>
 
-struct RomHeader
-{
-    u8 gameTitle[12];
-    u8 gameCode[4];
-    u8 makerCode[2];
-    u8 magic;
-    u8 unitCode;
-    u8 deviceType;
-    u8 reserved1[7];
-    u8 softwareVersion;
-    u8 checksum;
-    u8 reserved2[2];
-};
+#define NELEMS(x) (sizeof(x) / sizeof(*x))
 
-extern const struct RomHeader RS_RomHeader;
-
-extern const char RomHeaderGameTitle[12];
-extern const char RomHeaderGameCode[4];
-extern const u8 RomHeaderMagic;
+#define RomHeaderGameTitle       (const char *)0x080000A0
+#define RomHeaderGameCode        (const char *)0x080000AC
+#define RomHeaderMakerCode       (const char *)0x080000B0
+#define RomHeaderMagic           (const u8 *)  0x080000B2
+#define RomHeaderSoftwareVersion (const u8 *)  0x080000BC
 
 #endif //GUARD_RS_H

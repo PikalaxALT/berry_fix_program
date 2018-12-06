@@ -5,31 +5,6 @@
 
 	.text
 
-	THUMB_FUNC_START sub_020102E8
-sub_020102E8: @ 0x020102E8
-	push {lr}
-	ldr r0, =RomHeaderMakerCode
-	ldrb r0, [r0]
-	cmp r0, #0x30
-	bne _02010314
-	ldr r0, =RomHeaderMakerCode + 1
-	ldrb r0, [r0]
-	cmp r0, #0x31
-	bne _02010314
-	ldr r0, =RomHeaderMagic
-	ldrb r0, [r0]
-	cmp r0, #0x96
-	bne _02010314
-	bl sub_02010244
-	b _02010316
-	.pool
-_02010314:
-	movs r0, #6
-_02010316:
-	pop {r1}
-	bx r1
-	THUMB_FUNC_END sub_020102E8
-
 	THUMB_FUNC_START sub_0201031C
 sub_0201031C: @ 0x0201031C
 	push {r4, lr}

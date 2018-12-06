@@ -36,7 +36,7 @@ const IntrFunc gIntrFuncPointers[] = {
     NULL,
     NULL
 };
-const char gVersionData[6][2] = {
+const char gVersionData[][2] = {
     {'J', 1},
     {'E', 2},
     {'D', 1},
@@ -54,7 +54,7 @@ void AgbMain(void)
     DmaCopy32(3, IntrMain, gUnknown_3001090, sizeof(gUnknown_3001090));
     INTR_VECTOR = gUnknown_3001090;
     REG_IE = INTR_FLAG_VBLANK;
-    if (RomHeaderMagic == 0x96 && *(u32 *)RomHeaderGameCode == *(u32 *)gBerryFixGameCode)
+    if (*RomHeaderMagic == 0x96 && *(u32 *)RomHeaderGameCode == *(u32 *)gBerryFixGameCode)
         REG_IE |= INTR_FLAG_GAMEPAK;
     REG_DISPSTAT = DISPSTAT_VBLANK_INTR;
     REG_IME = INTR_FLAG_VBLANK;
@@ -103,18 +103,15 @@ bool32 sub_02010218(const char * src1, const char * src2, size_t size)
 #ifdef NONMATCHING
 s32 sub_02010244(void)
 {
-    u32 r2;
-    s32 r3, r4, r5;
-    const void * ptr = RomHeaderGameCode + 3;
-    r3 = *(const u8 *)ptr;
-    ptr += 13;
-    r4 = *(const u8 *)ptr;
-    r5 = -1;
-    for (r2 = 0; r2 < 6; r2++)
+    s32 r3 = *(RomHeaderGameCode + 3);
+    s32 r4 = *RomHeaderSoftwareVersion;
+    s32 r5 = -1;
+    s32 r2;
+    for (r2 = 0; r2 < NELEMS(gVersionData); ++r2)
     {
         if (r3 == gVersionData[r2][0])
         {
-            r5 = r4 < gVersionData[r2][1] ? 1 : 0;
+            r5 = r4 < gVersionData[r2][1];
             break;
         }
     }
@@ -227,3 +224,11 @@ s32 sub_02010244(void)
         "\t.syntax divided");
 }
 #endif
+
+s32 sub_020102E8(void)
+{
+    if (*(const u8 *)0x080000B0 == '0' && *(const u8 *)0x080000B1 == '1' && *(const u8 *)0x080000B2 == 0x96)
+        return sub_02010244();
+    else
+        return 6;
+}
