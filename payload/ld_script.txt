@@ -8,7 +8,9 @@ SECTIONS {
 	{
 		asm/crt0.o(.text);
 		src/main.o(.text);
-		asm/main.o(.text);
+		src/rtc.o(.text);
+		asm/rtc.o(.text);
+		asm/rom.o(.text);
 	} =0
 
 	lib_text :
@@ -44,6 +46,7 @@ SECTIONS {
 	ALIGN(4)
 	{
 	    src/main.o(.rodata);
+	    src/rtc.o(.rodata);
 	} =0
 
 	lib_rodata :
@@ -70,7 +73,7 @@ SECTIONS {
 	ALIGN(4)
 	{
 <BSS>
-		. = 0x40;
+    . = 0x40;
 <COMMON>
 		end = .;
 	}

@@ -1,15 +1,8 @@
 #include <gba/gba.h>
-#include <siirtc.h>
 #include "rs.h"
-
-struct UnkStruct_2012E9C
-{
-    void * ptr;
-    size_t size;
-};
+#include "main.h"
 
 BSS_DATA s32 gUnknown_3001000;
-BSS_DATA u16 gUnknown_300101E;
 IntrFunc gIntrTable[13];
 u16 gUnknown_3001080;
 u16 gUnknown_3001084;
@@ -21,21 +14,6 @@ u32 gUnknown_3001204;
 u32 gGameVersion;
 
 EWRAM_DATA u32 gUnknown_2020000;
-
-EWRAM_DATA u8 gUnknown_2028000[0x890];
-EWRAM_DATA u8 gUnknown_2028890[0xF80];
-EWRAM_DATA u8 gUnknown_2029810[0xF80];
-EWRAM_DATA u8 gUnknown_202A790[0xF80];
-EWRAM_DATA u8 gUnknown_202B710[0xC40];
-EWRAM_DATA u8 gUnknown_202C350[0xF80];
-EWRAM_DATA u8 gUnknown_202D2D0[0xF80];
-EWRAM_DATA u8 gUnknown_202E250[0xF80];
-EWRAM_DATA u8 gUnknown_202F1D0[0xF80];
-EWRAM_DATA u8 gUnknown_2030150[0xF80];
-EWRAM_DATA u8 gUnknown_20310D0[0xF80];
-EWRAM_DATA u8 gUnknown_2032050[0xF80];
-EWRAM_DATA u8 gUnknown_2032FD0[0xF80];
-EWRAM_DATA u8 gUnknown_2033F50[0x7D0];
 
 void IntrMain(void);
 void sub_02010C9C(void);
@@ -86,51 +64,6 @@ const u16 gUnknown_2012CF8[20] = {
     RGB(00, 00, 31)
 };
 const u16 gUnknown_2012D20[] = INCBIN_U16("graphics/unk_2D20.4bpp");
-const struct SiiRtcInfo gUnknown_2012E60 = {
-    .year = 0, // 2000
-    .month = 1, // January
-    .day = 1, // 01
-    .dayOfWeek = 0,
-    .hour = 0,
-    .minute = 0,
-    .second = 0,
-    .status = 0,
-    .alarmHour = 0,
-    .alarmMinute = 0
-};
-const u32 gUnknown_2012E6C[] = {
-    0x1f,
-    0x1c,
-    0x1f,
-    0x1e,
-    0x1f,
-    0x1e,
-    0x1f,
-    0x1f,
-    0x1e,
-    0x1f,
-    0x1e,
-    0x1f
-};
-const struct UnkStruct_2012E9C gUnknown_2012E9C[] = {
-    {gUnknown_2028000, sizeof(gUnknown_2028000)},
-    {gUnknown_2028890, sizeof(gUnknown_2028890)},
-    {gUnknown_2029810, sizeof(gUnknown_2029810)},
-    {gUnknown_202A790, sizeof(gUnknown_202A790)},
-    {gUnknown_202B710, sizeof(gUnknown_202B710)},
-    {gUnknown_202C350, sizeof(gUnknown_202C350)},
-    {gUnknown_202D2D0, sizeof(gUnknown_202D2D0)},
-    {gUnknown_202E250, sizeof(gUnknown_202E250)},
-    {gUnknown_202F1D0, sizeof(gUnknown_202F1D0)},
-    {gUnknown_2030150, sizeof(gUnknown_2030150)},
-    {gUnknown_20310D0, sizeof(gUnknown_20310D0)},
-    {gUnknown_2032050, sizeof(gUnknown_2032050)},
-    {gUnknown_2032FD0, sizeof(gUnknown_2032FD0)},
-    {gUnknown_2033F50, sizeof(gUnknown_2033F50)}
-};
-const u16 gUnknown_2012F0C[] = INCBIN_U16("graphics/unk_2F0C.gbapal");
-const u8 gUnknown_2012F2C[] = INCBIN_U8("graphics/unk_2F2C.tilemap.lz");
-const u8 gUnknown_2013758[] = INCBIN_U8("graphics/unk_3758.4bpp.lz");
 
 void AgbMain(void)
 {
@@ -439,29 +372,4 @@ void sub_020104DC(void)
     DmaFill16(3, 0x1111, (void *)VRAM + 0x8420, 0x1800);
     DmaCopy32(3, gUnknown_2012D20, (void *)VRAM + 0x8600, 0x200);
     sub_02010490();
-}
-
-void sub_0201052C(void)
-{
-    gUnknown_300101E = REG_IME;
-    REG_IME = 0;
-}
-
-void sub_02010544(void)
-{
-    REG_IME = gUnknown_300101E;
-}
-
-u32 sub_02010558(u8 a0)
-{
-    if (a0 >= 0xa0 || (a0 & 0xF) >= 10)
-        return 0xFF;
-    return ((a0 >> 4) & 0xF) * 10 + (a0 & 0xF);
-}
-
-bool8 is_leap_year(u8 year)
-{
-    if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
-        return TRUE;
-    return FALSE;
 }
