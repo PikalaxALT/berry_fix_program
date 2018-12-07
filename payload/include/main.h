@@ -13,4 +13,8 @@ extern u32 gUnknown_30011A0;
 extern u32 gUnknown_3001204;
 extern u32 gGameVersion;
 
+extern u8 gUnknown_2020000[0xFF4];
+extern u8 gUnknown_2020FF4[0xBDC];
+extern u8 gUnknown_2021BD0[0x6430];
+
 #endif //GUARD_MAIN_H

@@ -1,6 +1,6 @@
 #include <gba/gba.h>
 #include <siirtc.h>
-#include "rs.h"
+#include "global.h"
 #include "main.h"
 
 BSS_DATA u16 gUnknown_3001008;
@@ -78,7 +78,7 @@ u16 sub_020105B8(u8 year, u8 month, u8 day)
     }
     for (i = 0; i < month - 1; i++)
         numDays += sDaysPerMonth[i];
-    if (month > 2 && is_leap_year(year) == TRUE)
+    if (month > MONTH_FEB && is_leap_year(year) == TRUE)
         numDays++;
     numDays += day;
     return numDays;
@@ -145,8 +145,8 @@ void sub_0201074C(struct SiiRtcInfo * info)
 u16 sub_02010760(struct SiiRtcInfo * info)
 {
     s32 year, month, day;
-    u16 r4 = (info->status & 0x80) ? 0x20 : 0;
-    if (!(info->status & 0x40))
+    u16 r4 = (info->status & SIIRTCINFO_POWER) ? 0x20 : 0;
+    if (!(info->status & SIIRTCINFO_24HOUR))
         r4 |= 0x10;
     year = bcd_to_hex(info->year);
     if (year == 0xFF)
@@ -157,7 +157,7 @@ u16 sub_02010760(struct SiiRtcInfo * info)
     day = bcd_to_hex(info->day);
     if (day == 0xFF)
         r4 |= 0x100;
-    if (month == 2)
+    if (month == MONTH_FEB)
     {
         if (day > is_leap_year(year) + sDaysPerMonth[1])
             r4 |= 0x100;
@@ -177,4 +177,35 @@ u16 sub_02010760(struct SiiRtcInfo * info)
     if (day > 60)
         r4 |= 0x800;
     return r4;
+}
+
+void sub_02010860(void)
+{
+    sub_0201052C();
+    SiiRtcReset();
+    sub_02010544();
+}
+
+void sub_02010874(struct SiiRtcInfo * a0, struct Time * a1, struct Time * a2)
+{
+    u16 r4 = sub_02010644(a0);
+    a1->seconds = bcd_to_hex(a0->second) - a2->seconds;
+    a1->minutes = bcd_to_hex(a0->minute) - a2->minutes;
+    a1->hours = bcd_to_hex(a0->hour) - a2->hours;
+    a1->days = r4 - a2->days;
+    if (a1->seconds < 0)
+    {
+        a1->seconds += 60;
+        a1->minutes--;
+    }
+    if (a1->minutes < 0)
+    {
+        a1->minutes += 60;
+        a1->hours--;
+    }
+    if (a1->hours < 0)
+    {
+        a1->hours += 24;
+        a1->days--;
+    }
 }

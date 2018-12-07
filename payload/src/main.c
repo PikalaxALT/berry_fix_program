@@ -1,5 +1,5 @@
 #include <gba/gba.h>
-#include "rs.h"
+#include "global.h"
 #include "main.h"
 
 BSS_DATA s32 gUnknown_3001000;
@@ -17,7 +17,9 @@ u8 gFiller_30011A4[0x54];
 u32 gUnknown_3001204;
 u32 gGameVersion;
 
-extern EWRAM_DATA u8 gUnknown_2020000[];
+EWRAM_DATA u8 gUnknown_2020000[0xFF4] = {};
+EWRAM_DATA u8 gUnknown_2020FF4[0xBDC] = {};
+EWRAM_DATA u8 gUnknown_2021BD0[0x6430] = {};
 
 void IntrMain(void);
 void sub_02010C9C(void);

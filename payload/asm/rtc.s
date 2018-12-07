@@ -5,85 +5,6 @@
 
 	.text
 
-	THUMB_FUNC_START sub_02010860
-sub_02010860: @ 0x02010860
-	push {lr}
-	bl sub_0201052C
-	bl SiiRtcReset
-	bl sub_02010544
-	pop {r0}
-	bx r0
-	THUMB_FUNC_END sub_02010860
-
-	THUMB_FUNC_START sub_02010874
-sub_02010874: @ 0x02010874
-	push {r4, r5, r6, r7, lr}
-	adds r5, r0, #0
-	adds r7, r1, #0
-	adds r6, r2, #0
-	bl sub_02010644
-	adds r4, r0, #0
-	lsls r4, r4, #0x10
-	lsrs r4, r4, #0x10
-	ldrb r0, [r5, #6]
-	bl bcd_to_hex
-	ldrb r1, [r6, #4]
-	subs r0, r0, r1
-	strb r0, [r7, #4]
-	ldrb r0, [r5, #5]
-	bl bcd_to_hex
-	ldrb r1, [r6, #3]
-	subs r0, r0, r1
-	strb r0, [r7, #3]
-	ldrb r0, [r5, #4]
-	bl bcd_to_hex
-	ldrb r1, [r6, #2]
-	subs r0, r0, r1
-	strb r0, [r7, #2]
-	ldrh r0, [r6]
-	subs r4, r4, r0
-	strh r4, [r7]
-	ldrb r1, [r7, #4]
-	movs r0, #4
-	ldrsb r0, [r7, r0]
-	cmp r0, #0
-	bge _020108C6
-	adds r0, r1, #0
-	adds r0, #0x3c
-	strb r0, [r7, #4]
-	ldrb r0, [r7, #3]
-	subs r0, #1
-	strb r0, [r7, #3]
-_020108C6:
-	ldrb r1, [r7, #3]
-	movs r0, #3
-	ldrsb r0, [r7, r0]
-	cmp r0, #0
-	bge _020108DC
-	adds r0, r1, #0
-	adds r0, #0x3c
-	strb r0, [r7, #3]
-	ldrb r0, [r7, #2]
-	subs r0, #1
-	strb r0, [r7, #2]
-_020108DC:
-	ldrb r1, [r7, #2]
-	movs r0, #2
-	ldrsb r0, [r7, r0]
-	cmp r0, #0
-	bge _020108F2
-	adds r0, r1, #0
-	adds r0, #0x18
-	strb r0, [r7, #2]
-	ldrh r0, [r7]
-	subs r0, #1
-	strh r0, [r7]
-_020108F2:
-	pop {r4, r5, r6, r7}
-	pop {r0}
-	bx r0
-	THUMB_FUNC_END sub_02010874
-
 	THUMB_FUNC_START sub_020108F8
 sub_020108F8: @ 0x020108F8
 	push {r4, r5, r6, lr}
@@ -193,12 +114,12 @@ sub_020109A8: @ 0x020109A8
 	bl bcd_to_hex
 	strb r0, [r5]
 	ldr r5, =gUnknown_3001218
-	ldr r2, =gUnknown_2028000 + 0x98
+	ldr r2, =gSaveBlock2 + 0x98 @ .localTimeOffset
 	adds r0, r4, #0
 	adds r1, r5, #0
 	bl sub_02010874
 	ldr r4, =gUnknown_3001210
-	ldr r1, =gUnknown_2028000 + 0xA0
+	ldr r1, =gSaveBlock2 + 0xA0 @ .lastBerryTreeUpdate
 	adds r0, r4, #0
 	adds r2, r5, #0
 	bl sub_020108F8
