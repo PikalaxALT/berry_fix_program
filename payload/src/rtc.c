@@ -6,7 +6,7 @@
 BSS_DATA u16 gUnknown_3001008;
 BSS_DATA u32 filler_300100C;
 BSS_DATA struct SiiRtcInfo gUnknown_3001010;
-BSS_DATA u16 gUnknown_300101C;
+BSS_DATA u8 gUnknown_300101C;
 BSS_DATA u16 gUnknown_300101E;
 BSS_DATA struct SiiRtcInfo gUnknown_3001020;
 
@@ -36,6 +36,11 @@ const s32 sDaysPerMonth[] = {
     30,
     31
 };
+
+void sub_0201074C(struct SiiRtcInfo *);
+u16 sub_02010760(struct SiiRtcInfo *);
+
+
 void sub_0201052C(void)
 {
     gUnknown_300101E = REG_IME;
@@ -82,4 +87,57 @@ u16 sub_020105B8(u8 year, u8 month, u8 day)
 u16 sub_02010644(struct SiiRtcInfo *info)
 {
     return sub_020105B8(sub_02010558(info->year), sub_02010558(info->month), sub_02010558(info->day));
+}
+
+void sub_02010680(void)
+{
+    gUnknown_3001008 = 0;
+    sub_0201052C();
+    SiiRtcUnprotect();
+    gUnknown_300101C = SiiRtcProbe();
+    sub_02010544();
+    if ((gUnknown_300101C & 0xF) != 1)
+        gUnknown_3001008 = 1;
+    else
+    {
+        if (gUnknown_300101C & 0xF0)
+            gUnknown_3001008 = 2;
+        else
+            gUnknown_3001008 = 0;
+        sub_0201074C(&gUnknown_3001010);
+        gUnknown_3001008 = sub_02010760(&gUnknown_3001010);
+    }
+}
+
+u16 sub_020106E0(void)
+{
+    return gUnknown_3001008;
+}
+
+void sub_020106EC(struct SiiRtcInfo * info)
+{
+    if (gUnknown_3001008 & 0xFF0)
+        *info = gUnknown_2012E60;
+    else
+        sub_0201074C(info);
+}
+
+void sub_0201071C(struct SiiRtcInfo * info)
+{
+    sub_0201052C();
+    SiiRtcGetDateTime(info);
+    sub_02010544();
+}
+
+void sub_02010734(struct SiiRtcInfo * info)
+{
+    sub_0201052C();
+    SiiRtcGetStatus(info);
+    sub_02010544();
+}
+
+void sub_0201074C(struct SiiRtcInfo * info)
+{
+    sub_02010734(info);
+    sub_0201071C(info);
 }
