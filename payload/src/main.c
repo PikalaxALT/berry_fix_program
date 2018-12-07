@@ -56,12 +56,13 @@ const char gVersionData[][2] = {
 };
 const char gRubyTitleAndCode[] = "POKEMON RUBYAXV";
 const char gSapphireTitleAndCode[] = "POKEMON SAPPAXP";
-const u16 gUnknown_2012CF8[] = {
+const u16 gUnknown_2012CF8[20] = {
     RGB(00, 00, 00),
     RGB(31, 00, 00),
     RGB(00, 31, 00),
     RGB(00, 00, 31)
 };
+const u16 gUnknown_2012D20[] = INCBIN_U16("graphics/unk_02D20.4bpp");
 
 void AgbMain(void)
 {
@@ -363,4 +364,11 @@ void sub_02010490(void)
         dest += 16;
         src++;
     }
+}
+
+void sub_020104DC(void)
+{
+    DmaFill16(3, 0x1111, (void *)VRAM + 0x8420, 0x1800);
+    DmaCopy32(3, gUnknown_2012D20, (void *)VRAM + 0x8600, 0x200);
+    sub_02010490();
 }

@@ -4,12 +4,6 @@
 	.section .rodata
 	.align 2, 0
 
-	@ 2012D00
-	.space 0x20
-
-gUnknown_2012D20::
-	.incbin "baserom.gba", 0x2D20, 0x140
-
 gUnknown_2012E60::
 	.incbin "baserom.gba", 0x2E60, 0xC
 

@@ -5,35 +5,6 @@
 
 	.text
 
-	THUMB_FUNC_START sub_020104DC
-sub_020104DC: @ 0x020104DC
-	push {lr}
-	sub sp, #4
-	mov r1, sp
-	ldr r2, =0x00001111
-	adds r0, r2, #0
-	strh r0, [r1]
-	ldr r0, =REG_DMA3
-	str r1, [r0]
-	ldr r1, =VRAM + 0x8420
-	str r1, [r0, #4]
-	ldr r1, =0x81000C00
-	str r1, [r0, #8]
-	ldr r1, [r0, #8]
-	ldr r1, =gUnknown_2012D20
-	str r1, [r0]
-	ldr r1, =VRAM + 0x8600
-	str r1, [r0, #4]
-	ldr r1, =0x84000080
-	str r1, [r0, #8]
-	ldr r0, [r0, #8]
-	bl sub_02010490
-	add sp, #4
-	pop {r0}
-	bx r0
-	.pool
-	THUMB_FUNC_END sub_020104DC
-
 	THUMB_FUNC_START sub_0201052C
 sub_0201052C: @ 0x0201052C
 	ldr r2, =gUnknown_300101E
