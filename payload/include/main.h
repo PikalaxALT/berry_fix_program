@@ -3,12 +3,6 @@
 
 #include <gba/gba.h>
 
-struct UnkStruct_2012E9C
-{
-    void * ptr;
-    size_t size;
-};
-
 extern IntrFunc gIntrTable[13];
 extern u16 gUnknown_3001080;
 extern u16 gUnknown_3001084;

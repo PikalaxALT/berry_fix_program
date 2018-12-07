@@ -10,7 +10,8 @@ SECTIONS {
 		src/main.o(.text);
 		src/rtc.o(.text);
 		asm/rtc.o(.text);
-		asm/rom.o(.text);
+		src/flash.o(.text);
+		asm/flash.o(.text);
 	} =0
 
 	lib_text :
@@ -47,6 +48,7 @@ SECTIONS {
 	{
 	    src/main.o(.rodata);
 	    src/rtc.o(.rodata);
+	    src/flash.o(.rodata);
 	} =0
 
 	lib_rodata :

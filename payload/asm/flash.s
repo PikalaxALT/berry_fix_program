@@ -1592,4 +1592,3 @@ _020118DE:
 	pop {r1}
 	bx r1
 	THUMB_FUNC_END sub_0201189C
-
