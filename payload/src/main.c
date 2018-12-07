@@ -3,17 +3,21 @@
 #include "main.h"
 
 BSS_DATA s32 gUnknown_3001000;
-IntrFunc gIntrTable[13];
-u16 gUnknown_3001080;
-u16 gUnknown_3001084;
+BSS_DATA s32 gFiller_3001004;
+IntrFunc gIntrTable[16];
+u16 gHeldKeys;
+u16 gNewKeys;
 u8 gUnknown_3001090[0x100];
 u32 gUnknown_3001190;
 u32 gUnknown_3001194;
+u32 gFiller_3001198;
+u32 gFiller_300119C;
 u32 gUnknown_30011A0;
+u8 gFiller_30011A4[0x54];
 u32 gUnknown_3001204;
 u32 gGameVersion;
 
-EWRAM_DATA u32 gUnknown_2020000;
+extern EWRAM_DATA u8 gUnknown_2020000[];
 
 void IntrMain(void);
 void sub_02010C9C(void);
@@ -68,7 +72,7 @@ const u16 gUnknown_2012D20[] = INCBIN_U16("graphics/unk_2D20.4bpp");
 void AgbMain(void)
 {
     RegisterRamReset(0x1E);
-    DmaCopy32(3, gIntrFuncPointers, gIntrTable, sizeof gIntrTable);
+    DmaCopy32(3, gIntrFuncPointers, gIntrTable, sizeof gIntrFuncPointers);
     DmaCopy32(3, IntrMain, gUnknown_3001090, sizeof(gUnknown_3001090));
     INTR_VECTOR = gUnknown_3001090;
     REG_IE = INTR_FLAG_VBLANK;
@@ -83,7 +87,7 @@ void AgbMain(void)
     {
         VBlankIntrWait();
         ReadKeys();
-        main_callback(&gUnknown_3001204, &gUnknown_30011A0, &gUnknown_2020000);
+        main_callback(&gUnknown_3001204, &gUnknown_30011A0, gUnknown_2020000);
     }
 }
 
@@ -96,8 +100,8 @@ void sub_020101C0(void)
 void ReadKeys(void)
 {
     u16 keyInput = REG_KEYINPUT ^ KEYS_MASK;
-    gUnknown_3001084 = keyInput & ~gUnknown_3001080;
-    gUnknown_3001080 = keyInput;
+    gNewKeys = keyInput & ~gHeldKeys;
+    gHeldKeys = keyInput;
 }
 
 void fill_palette(const u8 * src, u16 * dest, u8 value)

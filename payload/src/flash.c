@@ -39,7 +39,3 @@ const struct UnkStruct_2012E9C gUnknown_2012E9C[] = {
     {gUnknown_2032FD0, sizeof(gUnknown_2032FD0)},
     {gUnknown_2033F50, sizeof(gUnknown_2033F50)}
 };
-const u16 gUnknown_2012F0C[] = INCBIN_U16("graphics/unk_2F0C.gbapal");
-const u8 gUnknown_2012F2C[] = INCBIN_U8("graphics/unk_2F2C.tilemap.lz");
-const u8 gUnknown_2013758[] = INCBIN_U8("graphics/unk_3758.4bpp.lz");
-

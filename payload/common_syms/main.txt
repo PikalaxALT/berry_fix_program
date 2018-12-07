@@ -1,9 +1,12 @@
 gIntrTable
-gUnknown_3001080
-gUnknown_3001084
+gHeldKeys
+gNewKeys
 gUnknown_3001090
 gUnknown_3001190
 gUnknown_3001194
+gFiller_3001198
+gFiller_300119C
 gUnknown_30011A0
+gFiller_30011A4
 gUnknown_3001204
 gGameVersion
