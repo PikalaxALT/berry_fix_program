@@ -5,89 +5,6 @@
 
 	.text
 
-	THUMB_FUNC_START sub_0201052C
-sub_0201052C: @ 0x0201052C
-	ldr r2, =gUnknown_300101E
-	ldr r1, =REG_IME
-	ldrh r0, [r1]
-	strh r0, [r2]
-	movs r0, #0
-	strh r0, [r1]
-	bx lr
-	.pool
-	THUMB_FUNC_END sub_0201052C
-
-	THUMB_FUNC_START sub_02010544
-sub_02010544: @ 0x02010544
-	ldr r0, =REG_IME
-	ldr r1, =gUnknown_300101E
-	ldrh r1, [r1]
-	strh r1, [r0]
-	bx lr
-	.pool
-	THUMB_FUNC_END sub_02010544
-
-	THUMB_FUNC_START sub_02010558
-sub_02010558: @ 0x02010558
-	push {lr}
-	lsls r0, r0, #0x18
-	lsrs r2, r0, #0x18
-	cmp r2, #0x9f
-	bhi _0201056A
-	movs r3, #0xf
-	ands r3, r2
-	cmp r3, #9
-	bls _0201056E
-_0201056A:
-	movs r0, #0xff
-	b _0201057C
-_0201056E:
-	lsrs r1, r0, #0x1c
-	movs r0, #0xf
-	ands r1, r0
-	lsls r0, r1, #2
-	adds r0, r0, r1
-	lsls r0, r0, #1
-	adds r0, r0, r3
-_0201057C:
-	pop {r1}
-	bx r1
-	THUMB_FUNC_END sub_02010558
-
-	THUMB_FUNC_START sub_02010580
-sub_02010580: @ 0x02010580
-	push {r4, lr}
-	lsls r0, r0, #0x18
-	lsrs r1, r0, #0x18
-	adds r4, r1, #0
-	movs r0, #3
-	ands r0, r1
-	cmp r0, #0
-	bne _0201059E
-	adds r0, r1, #0
-	movs r1, #0x64
-	bl __umodsi3
-	lsls r0, r0, #0x18
-	cmp r0, #0
-	bne _020105AC
-_0201059E:
-	movs r1, #0xc8
-	lsls r1, r1, #1
-	adds r0, r4, #0
-	bl __modsi3
-	cmp r0, #0
-	bne _020105B0
-_020105AC:
-	movs r0, #1
-	b _020105B2
-_020105B0:
-	movs r0, #0
-_020105B2:
-	pop {r4}
-	pop {r1}
-	bx r1
-	THUMB_FUNC_END sub_02010580
-
 	THUMB_FUNC_START sub_020105B8
 sub_020105B8: @ 0x020105B8
 	push {r4, r5, r6, r7, lr}
@@ -111,7 +28,7 @@ _020105D4:
 	lsrs r5, r0, #0x10
 	lsls r0, r4, #0x18
 	lsrs r0, r0, #0x18
-	bl sub_02010580
+	bl is_leap_year
 	lsls r0, r0, #0x18
 	lsrs r0, r0, #0x18
 	cmp r0, #1
@@ -141,7 +58,7 @@ _02010610:
 	cmp r6, #2
 	bls _02010628
 	adds r0, r7, #0
-	bl sub_02010580
+	bl is_leap_year
 	lsls r0, r0, #0x18
 	lsrs r0, r0, #0x18
 	cmp r0, #1
@@ -371,7 +288,7 @@ _020107CE:
 	mov r1, r8
 	lsls r0, r1, #0x18
 	lsrs r0, r0, #0x18
-	bl sub_02010580
+	bl is_leap_year
 	lsls r0, r0, #0x18
 	lsrs r0, r0, #0x18
 	ldr r1, =gUnknown_2012E6C
@@ -750,7 +667,7 @@ sub_02010A84: @ 0x02010A84
 	bl sub_02010558
 	lsls r0, r0, #0x18
 	lsrs r0, r0, #0x18
-	bl sub_02010580
+	bl is_leap_year
 	lsls r0, r0, #0x18
 	cmp r0, #0
 	beq _02010AD2

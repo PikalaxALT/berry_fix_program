@@ -9,6 +9,7 @@ struct UnkStruct_2012E9C
 };
 
 BSS_DATA s32 gUnknown_3001000;
+BSS_DATA u16 gUnknown_300101E;
 IntrFunc gIntrTable[13];
 u16 gUnknown_3001080;
 u16 gUnknown_3001084;
@@ -438,4 +439,29 @@ void sub_020104DC(void)
     DmaFill16(3, 0x1111, (void *)VRAM + 0x8420, 0x1800);
     DmaCopy32(3, gUnknown_2012D20, (void *)VRAM + 0x8600, 0x200);
     sub_02010490();
+}
+
+void sub_0201052C(void)
+{
+    gUnknown_300101E = REG_IME;
+    REG_IME = 0;
+}
+
+void sub_02010544(void)
+{
+    REG_IME = gUnknown_300101E;
+}
+
+u32 sub_02010558(u8 a0)
+{
+    if (a0 >= 0xa0 || (a0 & 0xF) >= 10)
+        return 0xFF;
+    return ((a0 >> 4) & 0xF) * 10 + (a0 & 0xF);
+}
+
+bool8 is_leap_year(u8 year)
+{
+    if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+        return TRUE;
+    return FALSE;
 }
