@@ -5,139 +5,6 @@
 
 	.text
 
-	THUMB_FUNC_START sub_02010760
-sub_02010760: @ 0x02010760
-	push {r4, r5, r6, r7, lr}
-	mov r7, r8
-	push {r7}
-	adds r7, r0, #0
-	ldrb r1, [r7, #7]
-	movs r0, #0x80
-	ands r0, r1
-	lsls r0, r0, #0x18
-	lsrs r0, r0, #0x18
-	rsbs r0, r0, #0
-	asrs r4, r0, #0x1f
-	movs r0, #0x20
-	ands r4, r0
-	movs r0, #0x40
-	ands r0, r1
-	cmp r0, #0
-	bne _02010786
-	movs r0, #0x10
-	orrs r4, r0
-_02010786:
-	ldrb r0, [r7]
-	bl sub_02010558
-	mov r8, r0
-	cmp r0, #0xff
-	bne _0201079A
-	movs r0, #0x40
-	orrs r4, r0
-	lsls r0, r4, #0x10
-	lsrs r4, r0, #0x10
-_0201079A:
-	ldrb r0, [r7, #1]
-	bl sub_02010558
-	adds r6, r0, #0
-	cmp r6, #0xff
-	beq _020107AE
-	cmp r6, #0
-	beq _020107AE
-	cmp r6, #0xc
-	ble _020107B6
-_020107AE:
-	movs r0, #0x80
-	orrs r4, r0
-	lsls r0, r4, #0x10
-	lsrs r4, r0, #0x10
-_020107B6:
-	ldrb r0, [r7, #2]
-	bl sub_02010558
-	adds r5, r0, #0
-	cmp r5, #0xff
-	bne _020107CE
-	movs r1, #0x80
-	lsls r1, r1, #1
-	adds r0, r1, #0
-	orrs r4, r0
-	lsls r0, r4, #0x10
-	lsrs r4, r0, #0x10
-_020107CE:
-	cmp r6, #2
-	bne _020107EC
-	mov r1, r8
-	lsls r0, r1, #0x18
-	lsrs r0, r0, #0x18
-	bl is_leap_year
-	lsls r0, r0, #0x18
-	lsrs r0, r0, #0x18
-	ldr r1, =sDaysPerMonth
-	ldr r1, [r1, #4]
-	adds r0, r0, r1
-	b _020107F6
-	.pool
-_020107EC:
-	ldr r0, =sDaysPerMonth
-	subs r1, r6, #1
-	lsls r1, r1, #2
-	adds r1, r1, r0
-	ldr r0, [r1]
-_020107F6:
-	cmp r5, r0
-	ble _02010806
-	movs r1, #0x80
-	lsls r1, r1, #1
-	adds r0, r1, #0
-	orrs r4, r0
-	lsls r0, r4, #0x10
-	lsrs r4, r0, #0x10
-_02010806:
-	ldrb r0, [r7, #4]
-	bl sub_02010558
-	adds r5, r0, #0
-	cmp r5, #0x18
-	ble _0201081E
-	movs r1, #0x80
-	lsls r1, r1, #2
-	adds r0, r1, #0
-	orrs r4, r0
-	lsls r0, r4, #0x10
-	lsrs r4, r0, #0x10
-_0201081E:
-	ldrb r0, [r7, #5]
-	bl sub_02010558
-	adds r5, r0, #0
-	cmp r5, #0x3c
-	ble _02010836
-	movs r1, #0x80
-	lsls r1, r1, #3
-	adds r0, r1, #0
-	orrs r4, r0
-	lsls r0, r4, #0x10
-	lsrs r4, r0, #0x10
-_02010836:
-	ldrb r0, [r7, #6]
-	bl sub_02010558
-	adds r5, r0, #0
-	cmp r5, #0x3c
-	ble _0201084E
-	movs r1, #0x80
-	lsls r1, r1, #4
-	adds r0, r1, #0
-	orrs r4, r0
-	lsls r0, r4, #0x10
-	lsrs r4, r0, #0x10
-_0201084E:
-	adds r0, r4, #0
-	pop {r3}
-	mov r8, r3
-	pop {r4, r5, r6, r7}
-	pop {r1}
-	bx r1
-	.pool
-	THUMB_FUNC_END sub_02010760
-
 	THUMB_FUNC_START sub_02010860
 sub_02010860: @ 0x02010860
 	push {lr}
@@ -159,17 +26,17 @@ sub_02010874: @ 0x02010874
 	lsls r4, r4, #0x10
 	lsrs r4, r4, #0x10
 	ldrb r0, [r5, #6]
-	bl sub_02010558
+	bl bcd_to_hex
 	ldrb r1, [r6, #4]
 	subs r0, r0, r1
 	strb r0, [r7, #4]
 	ldrb r0, [r5, #5]
-	bl sub_02010558
+	bl bcd_to_hex
 	ldrb r1, [r6, #3]
 	subs r0, r0, r1
 	strb r0, [r7, #3]
 	ldrb r0, [r5, #4]
-	bl sub_02010558
+	bl bcd_to_hex
 	ldrb r1, [r6, #2]
 	subs r0, r0, r1
 	strb r0, [r7, #2]
@@ -323,7 +190,7 @@ sub_020109A8: @ 0x020109A8
 	adds r0, r4, #0
 	bl sub_0201074C
 	ldrb r0, [r4]
-	bl sub_02010558
+	bl bcd_to_hex
 	strb r0, [r5]
 	ldr r5, =gUnknown_3001218
 	ldr r2, =gUnknown_2028000 + 0x98
@@ -395,7 +262,7 @@ sub_02010A44: @ 0x02010A44
 	push {r4, lr}
 	adds r4, r0, #0
 	ldrb r0, [r4]
-	bl sub_02010558
+	bl bcd_to_hex
 	adds r0, #1
 	lsls r0, r0, #0x18
 	lsrs r0, r0, #0x18
@@ -413,7 +280,7 @@ sub_02010A60: @ 0x02010A60
 	adds r0, r4, #1
 	bl sub_02010A44
 	ldrb r0, [r4, #1]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #0xc
 	ble _02010A7E
 	adds r0, r4, #0
@@ -433,11 +300,11 @@ sub_02010A84: @ 0x02010A84
 	adds r0, r6, #2
 	bl sub_02010A44
 	ldrb r0, [r6, #2]
-	bl sub_02010558
+	bl bcd_to_hex
 	adds r5, r0, #0
 	ldr r4, =sDaysPerMonth
 	ldrb r0, [r6, #1]
-	bl sub_02010558
+	bl bcd_to_hex
 	subs r0, #1
 	lsls r0, r0, #2
 	adds r0, r0, r4
@@ -445,7 +312,7 @@ sub_02010A84: @ 0x02010A84
 	cmp r5, r0
 	ble _02010ADC
 	ldrb r0, [r6]
-	bl sub_02010558
+	bl bcd_to_hex
 	lsls r0, r0, #0x18
 	lsrs r0, r0, #0x18
 	bl is_leap_year
@@ -453,11 +320,11 @@ sub_02010A84: @ 0x02010A84
 	cmp r0, #0
 	beq _02010AD2
 	ldrb r0, [r6, #1]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #2
 	bne _02010AD2
 	ldrb r0, [r6, #2]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #0x1d
 	beq _02010ADC
 _02010AD2:
@@ -477,25 +344,25 @@ sub_02010AE8: @ 0x02010AE8
 	push {r4, lr}
 	adds r4, r0, #0
 	ldrb r0, [r4]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #0
 	bne _02010B16
 	ldrb r0, [r4, #1]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #1
 	beq _02010B20
 	ldrb r0, [r4, #1]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #2
 	bgt _02010B24
 	ldrb r0, [r4, #2]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #0x1d
 	beq _02010B24
 	b _02010B20
 _02010B16:
 	ldrb r0, [r4]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #1
 	beq _02010B24
 _02010B20:
@@ -516,16 +383,16 @@ sub_02010B2C: @ 0x02010B2C
 	adds r0, r4, #0
 	bl sub_0201074C
 	ldrb r0, [r4]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #0
 	beq _02010B4A
 	ldrb r0, [r4]
-	bl sub_02010558
+	bl bcd_to_hex
 	cmp r0, #1
 	bne _02010B90
 _02010B4A:
 	ldrb r0, [r4]
-	bl sub_02010558
+	bl bcd_to_hex
 	adds r1, r0, #0
 	cmp r1, #1
 	bne _02010B6C

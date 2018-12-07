@@ -52,7 +52,7 @@ void sub_02010544(void)
     REG_IME = gUnknown_300101E;
 }
 
-u32 sub_02010558(u8 a0)
+s32 bcd_to_hex(u8 a0)
 {
     if (a0 >= 0xa0 || (a0 & 0xF) >= 10)
         return 0xFF;
@@ -86,7 +86,7 @@ u16 sub_020105B8(u8 year, u8 month, u8 day)
 
 u16 sub_02010644(struct SiiRtcInfo *info)
 {
-    return sub_020105B8(sub_02010558(info->year), sub_02010558(info->month), sub_02010558(info->day));
+    return sub_020105B8(bcd_to_hex(info->year), bcd_to_hex(info->month), bcd_to_hex(info->day));
 }
 
 void sub_02010680(void)
@@ -140,4 +140,41 @@ void sub_0201074C(struct SiiRtcInfo * info)
 {
     sub_02010734(info);
     sub_0201071C(info);
+}
+
+u16 sub_02010760(struct SiiRtcInfo * info)
+{
+    s32 year, month, day;
+    u16 r4 = (info->status & 0x80) ? 0x20 : 0;
+    if (!(info->status & 0x40))
+        r4 |= 0x10;
+    year = bcd_to_hex(info->year);
+    if (year == 0xFF)
+        r4 |= 0x40;
+    month = bcd_to_hex(info->month);
+    if (month == 0xFF || month == 0 || month > 12)
+        r4 |= 0x80;
+    day = bcd_to_hex(info->day);
+    if (day == 0xFF)
+        r4 |= 0x100;
+    if (month == 2)
+    {
+        if (day > is_leap_year(year) + sDaysPerMonth[1])
+            r4 |= 0x100;
+    }
+    else
+    {
+        if (day > sDaysPerMonth[month - 1])
+            r4 |= 0x100;
+    }
+    day = bcd_to_hex(info->hour);
+    if (day > 24)
+        r4 |= 0x200;
+    day = bcd_to_hex(info->minute);
+    if (day > 60)
+        r4 |= 0x400;
+    day = bcd_to_hex(info->second);
+    if (day > 60)
+        r4 |= 0x800;
+    return r4;
 }
