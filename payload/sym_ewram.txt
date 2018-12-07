@@ -5,10 +5,47 @@ gUnknown_2020FF4:
 	.space 0xBDC
 
 gUnknown_2021BD0:
-	.space 0x64C8
+	.space 0x6430
 
-gUnknown_2028098:
-	.space 0x8
+gUnknown_2028000:
+    .space 0x890
 
-gUnknown_20280A0:
-	.space 0x4
+gUnknown_2028890:
+    .space 0xF80
+
+gUnknown_2029810:
+    .space 0xF80
+
+gUnknown_202A790:
+    .space 0xF80
+
+gUnknown_202B710:
+    .space 0xC40
+
+gUnknown_202C350:
+    .space 0xF80
+
+gUnknown_202D2D0:
+    .space 0xF80
+
+gUnknown_202E250:
+    .space 0xF80
+
+gUnknown_202F1D0:
+    .space 0xF80
+
+gUnknown_2030150:
+    .space 0xF80
+
+gUnknown_20310D0:
+    .space 0xF80
+
+gUnknown_2032050:
+    .space 0xF80
+
+gUnknown_2032FD0:
+    .space 0xF80
+
+gUnknown_2033F50:
+    .space 0x7D0
+

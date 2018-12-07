@@ -62,7 +62,7 @@ const u16 gUnknown_2012CF8[20] = {
     RGB(00, 31, 00),
     RGB(00, 00, 31)
 };
-const u16 gUnknown_2012D20[] = INCBIN_U16("graphics/unk_02D20.4bpp");
+const u16 gUnknown_2012D20[] = INCBIN_U16("graphics/unk_2D20.4bpp");
 
 void AgbMain(void)
 {

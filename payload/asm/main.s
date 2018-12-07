@@ -628,12 +628,12 @@ sub_020109A8: @ 0x020109A8
 	bl sub_02010558
 	strb r0, [r5]
 	ldr r5, =gUnknown_3001218
-	ldr r2, =gUnknown_2028098
+	ldr r2, =gUnknown_2028000 + 0x98
 	adds r0, r4, #0
 	adds r1, r5, #0
 	bl sub_02010874
 	ldr r4, =gUnknown_3001210
-	ldr r1, =gUnknown_20280A0
+	ldr r1, =gUnknown_2028000 + 0xA0
 	adds r0, r4, #0
 	adds r2, r5, #0
 	bl sub_020108F8
