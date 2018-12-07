@@ -5,6 +5,19 @@
 
 #define NELEMS(x) (sizeof(x) / sizeof(*x))
 
+// IDE support
+#if defined (__APPLE__) || defined (__CYGWIN__) || defined (_MSC_VER)
+#define _(x) x
+#define __(x) x
+#define INCBIN(x) {0}
+#define INCBIN_U8 INCBIN
+#define INCBIN_U16 INCBIN
+#define INCBIN_U32 INCBIN
+#define INCBIN_S8 INCBIN
+#define INCBIN_S16 INCBIN
+#define INCBIN_S32 INCBIN
+#endif // IDE support
+
 enum
 {
     VERSION_SAPPHIRE = 1,
