@@ -9,7 +9,6 @@ SECTIONS {
 		asm/crt0.o(.text);
 		src/main.o(.text);
 		src/rtc.o(.text);
-		asm/rtc.o(.text);
 		src/flash.o(.text);
 		asm/flash.o(.text);
 		src/berry_fix.o(.text);

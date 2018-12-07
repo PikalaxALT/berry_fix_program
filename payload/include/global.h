@@ -869,4 +869,7 @@ extern struct SaveBlock2 gSaveBlock2;
 #define RomHeaderMagic           ((const u8 *)  0x080000B2)
 #define RomHeaderSoftwareVersion ((const u8 *)  0x080000BC)
 
+#define LocalTimeOffset     ((struct Time *)0x02028098)
+#define LastBerryTreeUpdate ((struct Time *)0x020280A0)
+
 #endif //GUARD_GLOBAL_H

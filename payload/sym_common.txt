@@ -1,12 +1,7 @@
     .include "main.o"
+    .include "rtc.o"
 
     .align 4
-gUnknown_3001210: @ 0x03001210
-	.space 0x8
-
-gUnknown_3001218: @ 0x03001218
-	.space 0x8
-
 gUnknown_3001220: @ 0x03001220
 	.space 0x4
 

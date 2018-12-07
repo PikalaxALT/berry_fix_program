@@ -3,6 +3,9 @@
 #include "global.h"
 #include "main.h"
 
+struct Time gUnknown_3001210;
+struct Time gUnknown_3001218;
+
 BSS_DATA u16 gUnknown_3001008;
 BSS_DATA u32 filler_300100C;
 BSS_DATA struct SiiRtcInfo gUnknown_3001010;
@@ -247,4 +250,98 @@ void sub_02010980(struct SiiRtcInfo * info)
     REG_IME = 0;
     SiiRtcSetDateTime(info);
     REG_IME = imeBak;
+}
+
+bool32 sub_020109A8(u8 * a0)
+{
+    sub_0201074C(&gUnknown_3001020);
+    *a0 = bcd_to_hex(gUnknown_3001020.year);
+    sub_02010874(&gUnknown_3001020, &gUnknown_3001218, LocalTimeOffset);
+    sub_020108F8(&gUnknown_3001210, LastBerryTreeUpdate, &gUnknown_3001218);
+    if (gUnknown_3001210.days * 1440 + gUnknown_3001210.hours * 60 + gUnknown_3001210.minutes >= 0)
+        return TRUE;
+    return FALSE;
+}
+
+u32 hex_to_bcd(u8 a0)
+{
+    u32 r4;
+    if (a0 > 99)
+        return 0xFF;
+    r4 = Div(a0, 10) << 4;
+    r4 |= Mod(a0, 10);
+    return r4;
+}
+
+void sii_rtc_inc(u8 * a0)
+{
+    *a0 = hex_to_bcd(bcd_to_hex(*a0) + 1);
+}
+
+void sii_rtc_inc_month(struct SiiRtcInfo * a0)
+{
+    sii_rtc_inc(&a0->month);
+    if (bcd_to_hex(a0->month) > 12)
+    {
+        sii_rtc_inc(&a0->year);
+        a0->month = MONTH_JAN;
+    }
+}
+
+void sub_02010A84(struct SiiRtcInfo * a0)
+{
+    sii_rtc_inc(&a0->day);
+    if (bcd_to_hex(a0->day) > sDaysPerMonth[bcd_to_hex(a0->month) - 1])
+    {
+        if (!is_leap_year(bcd_to_hex(a0->year)) || bcd_to_hex(a0->month) != MONTH_FEB || bcd_to_hex(a0->day) != 29)
+        {
+            a0->day = 1;
+            sii_rtc_inc_month(a0);
+        }
+    }
+}
+
+bool32 sub_02010AE8(struct SiiRtcInfo * a0)
+{
+    if (bcd_to_hex(a0->year) == 0)
+    {
+        if (bcd_to_hex(a0->month) == MONTH_JAN)
+            return FALSE;
+        if (bcd_to_hex(a0->month) > MONTH_FEB)
+            return TRUE;
+        if (bcd_to_hex(a0->day) == 29)
+            return TRUE;
+        return FALSE;
+    }
+    if (bcd_to_hex(a0->year) == 1)
+        return TRUE;
+    return FALSE;
+}
+
+void sub_02010B2C(void)
+{
+    sub_0201074C(&gUnknown_3001020);
+    if (bcd_to_hex(gUnknown_3001020.year) == 0 || bcd_to_hex(gUnknown_3001020.year) == 1)
+    {
+        if (bcd_to_hex(gUnknown_3001020.year) == 1)
+        {
+            gUnknown_3001020.year = 2;
+            gUnknown_3001020.month = MONTH_JAN;
+            gUnknown_3001020.day = 2;
+            sub_02010980(&gUnknown_3001020);
+        }
+        else
+        {
+            if (sub_02010AE8(&gUnknown_3001020) == TRUE)
+            {
+                sub_02010A84(&gUnknown_3001020);
+                sii_rtc_inc(&gUnknown_3001020.year);
+            }
+            else
+            {
+                sii_rtc_inc(&gUnknown_3001020.year);
+            }
+            sub_02010980(&gUnknown_3001020);
+        }
+    }
 }
