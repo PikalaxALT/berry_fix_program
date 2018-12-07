@@ -5,40 +5,6 @@
 
 	.text
 
-	THUMB_FUNC_START sub_02010490
-sub_02010490: @ 0x02010490
-	push {lr}
-	sub sp, #4
-	ldr r3, =PLTT + 0x2
-	mov r1, sp
-	ldr r2, =0x00007FFF
-	adds r0, r2, #0
-	strh r0, [r1]
-	ldr r1, =REG_DMA3
-	mov r0, sp
-	str r0, [r1]
-	movs r0, #0xa0
-	lsls r0, r0, #0x13
-	str r0, [r1, #4]
-	ldr r0, =0x81000100
-	str r0, [r1, #8]
-	ldr r0, [r1, #8]
-	ldr r2, =gUnknown_2012CF8
-	movs r1, #3
-_020104B4:
-	ldrh r0, [r2]
-	strh r0, [r3]
-	adds r3, #0x20
-	adds r2, #2
-	subs r1, #1
-	cmp r1, #0
-	bge _020104B4
-	add sp, #4
-	pop {r0}
-	bx r0
-	.pool
-	THUMB_FUNC_END sub_02010490
-
 	THUMB_FUNC_START sub_020104DC
 sub_020104DC: @ 0x020104DC
 	push {lr}

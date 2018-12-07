@@ -4,12 +4,6 @@
 	.section .rodata
 	.align 2, 0
 
-gUnknown_2012CF8::
-	.2byte 0x0000 @ RGB(00, 00, 00)
-	.2byte 0x001f @ RGB(31, 00, 00)
-	.2byte 0x03e0 @ RGB(00, 31, 00)
-	.2byte 0x7c00 @ RGB(00, 00, 31)
-
 	@ 2012D00
 	.space 0x20
 

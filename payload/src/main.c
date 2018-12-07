@@ -19,7 +19,7 @@ void sub_02010C9C(void);
 void ReadKeys(void);
 void sub_020101C0(void);
 void sub_020101BC(void);
-void sub_0201031C(u32 *, void *, void *);
+void main_callback(u32 *, void *, void *);
 bool32 sub_0201189C(void);
 bool32 sub_02010960(void);
 bool32 sub_020109A8(u8 *);
@@ -56,6 +56,12 @@ const char gVersionData[][2] = {
 };
 const char gRubyTitleAndCode[] = "POKEMON RUBYAXV";
 const char gSapphireTitleAndCode[] = "POKEMON SAPPAXP";
+const u16 gUnknown_2012CF8[] = {
+    RGB(00, 00, 00),
+    RGB(31, 00, 00),
+    RGB(00, 31, 00),
+    RGB(00, 00, 31)
+};
 
 void AgbMain(void)
 {
@@ -75,7 +81,7 @@ void AgbMain(void)
     {
         VBlankIntrWait();
         ReadKeys();
-        sub_0201031C(&gUnknown_3001204, &gUnknown_30011A0, &gUnknown_2020000);
+        main_callback(&gUnknown_3001204, &gUnknown_30011A0, &gUnknown_2020000);
     }
 }
 
@@ -243,7 +249,7 @@ s32 validate_rom_header(void)
         return 6;
 }
 
-void sub_0201031C(u32 * a0, void * unused1, void * unused2)
+void main_callback(u32 * a0, void * unused1, void * unused2)
 {
     u8 sp0;
     switch (*a0)
@@ -340,5 +346,21 @@ void sub_0201031C(u32 * a0, void * unused1, void * unused2)
         case 11:
             sub_02010D00(2);
             break;
+    }
+}
+
+void sub_02010490(void)
+{
+    register u16 * dest asm("r3");
+    const u16 * src;
+    s32 i;
+    dest = (u16 *)BG_PLTT + 1;
+    DmaFill16(3, RGB(31, 31, 31), (void *)BG_PLTT, BG_PLTT_SIZE);
+    src = gUnknown_2012CF8;
+    for (i = 0; i < 4; i++)
+    {
+        *dest = *src;
+        dest += 16;
+        src++;
     }
 }
