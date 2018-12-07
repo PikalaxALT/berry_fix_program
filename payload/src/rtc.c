@@ -209,3 +209,42 @@ void sub_02010874(struct SiiRtcInfo * a0, struct Time * a1, struct Time * a2)
         a1->days--;
     }
 }
+
+void sub_020108F8(struct Time * a0, struct Time * a1, struct Time * a2)
+{
+    a0->seconds = a2->seconds - a1->seconds;
+    a0->minutes = a2->minutes - a1->minutes;
+    a0->hours = a2->hours - a1->hours;
+    a0->days = a2->days - a1->days;
+    if (a0->seconds < 0)
+    {
+        a0->seconds += 60;
+        a0->minutes--;
+    }
+    if (a0->minutes < 0)
+    {
+        a0->minutes += 60;
+        a0->hours--;
+    }
+    if (a0->hours < 0)
+    {
+        a0->hours += 24;
+        a0->days--;
+    }
+}
+
+bool32 sub_02010960(void)
+{
+    sub_02010680();
+    if (sub_020106E0() & 0xFF0)
+        return FALSE;
+    return TRUE;
+}
+
+void sub_02010980(struct SiiRtcInfo * info)
+{
+    vu16 imeBak = REG_IME;
+    REG_IME = 0;
+    SiiRtcSetDateTime(info);
+    REG_IME = imeBak;
+}

@@ -1,6 +1,7 @@
 #include <gba/gba.h>
 #include "global.h"
 #include "main.h"
+#include "rtc.h"
 
 BSS_DATA s32 gUnknown_3001000;
 BSS_DATA s32 gFiller_3001004;
@@ -28,9 +29,6 @@ void sub_020101C0(void);
 void sub_020101BC(void);
 void main_callback(u32 *, void *, void *);
 bool32 sub_0201189C(void);
-bool32 sub_02010960(void);
-bool32 sub_020109A8(u8 *);
-void sub_02010B2C(void);
 bool32 sub_02010B9C(void);
 bool8 sub_02010C80(u32);
 
