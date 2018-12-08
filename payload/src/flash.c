@@ -22,6 +22,7 @@ u16 gUnknown_3001228;
 u32 gUnknown_300122C;
 u32 gUnknown_3001230;
 struct UnkEwramStruct * gUnknown_3001234;
+u16 gUnknown_3001238;
 bool32 gUnknown_300123C;
 
 EWRAM_DATA struct SaveBlock2 gSaveBlock2 = {};
@@ -441,3 +442,37 @@ void sub_02010FBC(u8 a0, u8 * a1, u16 a2)
                 "\t.pool");
 }
 #endif
+
+u8 sub_02011034(u8 a0, u8 * a1)
+{
+    if (ProgramFlashSectorAndVerify(a0, a1))
+    {
+        sub_02010DC8(0, a0);
+        return 0xFF;
+    }
+    sub_02010DC8(1, a0);
+    return 1;
+}
+
+s32 sub_02011060(void)
+{
+    gUnknown_3001234 = (struct UnkEwramStruct *)gUnknown_2020000;
+    gUnknown_3001228 = gUnknown_3001220;
+    gUnknown_3001224 = gUnknown_3001230;
+    gUnknown_3001220++;
+    gUnknown_3001220 %= 14;
+    gUnknown_3001230++;
+    gUnknown_3001238 = 0;
+    gUnknown_300122C = 0;
+    return 0;
+}
+
+s32 sub_020110BC(void)
+{
+    gUnknown_3001234 = (struct UnkEwramStruct *)gUnknown_2020000;
+    gUnknown_3001228 = gUnknown_3001220;
+    gUnknown_3001224 = gUnknown_3001230;
+    gUnknown_3001238 = 0;
+    gUnknown_300122C = 0;
+    return 0;
+}
