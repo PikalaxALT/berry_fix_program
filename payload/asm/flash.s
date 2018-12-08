@@ -5,61 +5,6 @@
 
 	.text
 
-	THUMB_FUNC_START sub_02010FBC
-sub_02010FBC: @ 0x02010FBC
-	push {r4, r5, r6, r7, lr}
-	adds r5, r1, #0
-	lsls r0, r0, #0x18
-	lsrs r7, r0, #0x18
-	lsls r2, r2, #0x10
-	lsrs r2, r2, #0x10
-	ldr r4, =gUnknown_2020000
-	movs r3, #0
-	movs r6, #0
-	ldr r1, =0x00000FFF
-_02010FD0:
-	adds r0, r4, r3
-	strb r6, [r0]
-	adds r0, r3, #1
-	lsls r0, r0, #0x10
-	lsrs r3, r0, #0x10
-	cmp r3, r1
-	bls _02010FD0
-	ldr r0, =0x00000FF8
-	adds r0, r4, r0
-	ldr r1, =0x08012025
-	str r1, [r0]
-	movs r3, #0
-	cmp r3, r2
-	bhs _02010FFE
-_02010FEC:
-	adds r1, r4, r3
-	adds r0, r5, r3
-	ldrb r0, [r0]
-	strb r0, [r1]
-	adds r0, r3, #1
-	lsls r0, r0, #0x10
-	lsrs r3, r0, #0x10
-	cmp r3, r2
-	blo _02010FEC
-_02010FFE:
-	adds r0, r5, #0
-	adds r1, r2, #0
-	bl sub_02011800
-	ldr r1, =0x00000FF4
-	adds r1, r4, r1
-	strh r0, [r1]
-	adds r0, r7, #0
-	adds r1, r4, #0
-	bl sub_02011034
-	lsls r0, r0, #0x18
-	lsrs r0, r0, #0x18
-	pop {r4, r5, r6, r7}
-	pop {r1}
-	bx r1
-	.pool
-	THUMB_FUNC_END sub_02010FBC
-
 	THUMB_FUNC_START sub_02011034
 sub_02011034: @ 0x02011034
 	push {r4, lr}

@@ -20,6 +20,8 @@ struct UnkEwramStruct
     u32 unk_0FFC;
 };
 
+#define UnkFlashData (*(struct UnkEwramStruct *)gUnknown_2020000)
+
 bool8 sub_02010C80(u32);
 void msg_load_gfx(void);
 void msg_display(u32);

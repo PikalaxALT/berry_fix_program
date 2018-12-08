@@ -14,7 +14,7 @@ u8 sub_02010E2C(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
 u16 sub_02011800(u8 *, size_t);
-u8 sub_02011034(u8);
+u8 sub_02011034(u8, u8 *);
 
 u16 gUnknown_3001220;
 u32 gUnknown_3001224;
@@ -256,7 +256,7 @@ u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1)
         gUnknown_3001234->unk_0000[r3] = r10[r3];
     }
     gUnknown_3001234->unk_0FF6 = sub_02011800(r10, r4);
-    return sub_02011034(r5);
+    return sub_02011034(r5, gUnknown_3001234->unk_0000);
 }
 #else
 NAKED
@@ -360,6 +360,81 @@ u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1)
                 "\tmov r8, r3\n"
                 "\tmov sb, r4\n"
                 "\tmov sl, r5\n"
+                "\tpop {r4, r5, r6, r7}\n"
+                "\tpop {r1}\n"
+                "\tbx r1\n"
+                "\t.pool");
+}
+#endif
+
+#ifdef NONMATCHING
+u8 sub_02010FBC(u8 a0, u8 * a1, u16 a2)
+{
+    u16 r3;
+    struct UnkEwramStruct *r4 = &UnkFlashData;
+    for (r3 = 0; r3 < 0x1000; r3++)
+    {
+        r4->unk_0000[r3] = 0;
+    }
+    r4->unk_0FF8 = (struct UnkEwramSubstruct){0x25, 0x20, 0x01, 0x08};
+    for (r3 = 0; r3 < a2; r3++)
+    {
+        r4->unk_0000[r3] = a1[r3];
+    }
+    r4->unk_0FF4 = sub_02011800(a1, a2);
+    return sub_02011034(a0, r4);
+}
+#else
+NAKED
+void sub_02010FBC(u8 a0, u8 * a1, u16 a2)
+{
+    asm_unified("\tpush {r4, r5, r6, r7, lr}\n"
+                "\tadds r5, r1, #0\n"
+                "\tlsls r0, r0, #0x18\n"
+                "\tlsrs r7, r0, #0x18\n"
+                "\tlsls r2, r2, #0x10\n"
+                "\tlsrs r2, r2, #0x10\n"
+                "\tldr r4, =gUnknown_2020000\n"
+                "\tmovs r3, #0\n"
+                "\tmovs r6, #0\n"
+                "\tldr r1, =0x00000FFF\n"
+                "_02010FD0:\n"
+                "\tadds r0, r4, r3\n"
+                "\tstrb r6, [r0]\n"
+                "\tadds r0, r3, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r3, r0, #0x10\n"
+                "\tcmp r3, r1\n"
+                "\tbls _02010FD0\n"
+                "\tldr r0, =0x00000FF8\n"
+                "\tadds r0, r4, r0\n"
+                "\tldr r1, =0x08012025\n"
+                "\tstr r1, [r0]\n"
+                "\tmovs r3, #0\n"
+                "\tcmp r3, r2\n"
+                "\tbhs _02010FFE\n"
+                "_02010FEC:\n"
+                "\tadds r1, r4, r3\n"
+                "\tadds r0, r5, r3\n"
+                "\tldrb r0, [r0]\n"
+                "\tstrb r0, [r1]\n"
+                "\tadds r0, r3, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r3, r0, #0x10\n"
+                "\tcmp r3, r2\n"
+                "\tblo _02010FEC\n"
+                "_02010FFE:\n"
+                "\tadds r0, r5, #0\n"
+                "\tadds r1, r2, #0\n"
+                "\tbl sub_02011800\n"
+                "\tldr r1, =0x00000FF4\n"
+                "\tadds r1, r4, r1\n"
+                "\tstrh r0, [r1]\n"
+                "\tadds r0, r7, #0\n"
+                "\tadds r1, r4, #0\n"
+                "\tbl sub_02011034\n"
+                "\tlsls r0, r0, #0x18\n"
+                "\tlsrs r0, r0, #0x18\n"
                 "\tpop {r4, r5, r6, r7}\n"
                 "\tpop {r1}\n"
                 "\tbx r1\n"
