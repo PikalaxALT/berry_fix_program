@@ -5,336 +5,6 @@
 
 	.text
 
-	THUMB_FUNC_START sub_02010D00
-sub_02010D00: @ 0x02010D00
-	push {lr}
-	cmp r0, #4
-	bhi _02010D80
-	lsls r0, r0, #2
-	ldr r1, =_02010D14
-	adds r0, r0, r1
-	ldr r0, [r0]
-	mov pc, r0
-	.pool
-_02010D14: @ jump table
-	.4byte _02010D28 @ case 0
-	.4byte _02010D38 @ case 1
-	.4byte _02010D4C @ case 2
-	.4byte _02010D60 @ case 3
-	.4byte _02010D70 @ case 4
-_02010D28:
-	ldr r0, =REG_BG0HOFS
-	movs r1, #0
-	strh r1, [r0]
-	adds r0, #2
-	strh r1, [r0]
-	b _02010D80
-	.pool
-_02010D38:
-	ldr r1, =REG_BG0HOFS
-	movs r2, #0x80
-	lsls r2, r2, #1
-	adds r0, r2, #0
-	strh r0, [r1]
-	adds r1, #2
-	movs r0, #0
-	b _02010D7E
-	.pool
-_02010D4C:
-	ldr r1, =REG_BG0HOFS
-	movs r2, #0x80
-	lsls r2, r2, #1
-	adds r0, r2, #0
-	strh r0, [r1]
-	adds r1, #2
-	movs r0, #0xb0
-	b _02010D7E
-	.pool
-_02010D60:
-	ldr r1, =REG_BG0HOFS
-	movs r0, #0
-	strh r0, [r1]
-	adds r1, #2
-	movs r0, #0xb0
-	b _02010D7E
-	.pool
-_02010D70:
-	ldr r1, =REG_BG0HOFS
-	movs r0, #0
-	strh r0, [r1]
-	adds r1, #2
-	movs r2, #0xb0
-	lsls r2, r2, #1
-	adds r0, r2, #0
-_02010D7E:
-	strh r0, [r1]
-_02010D80:
-	pop {r0}
-	bx r0
-	.pool
-	THUMB_FUNC_END sub_02010D00
-
-	THUMB_FUNC_START sub_02010D88
-sub_02010D88: @ 0x02010D88
-	push {r4, r5, lr}
-	movs r4, #0
-	ldr r5, =EraseFlashSector
-_02010D8E:
-	ldr r1, [r5]
-	adds r0, r4, #0
-	bl _call_via_r1
-	adds r0, r4, #1
-	lsls r0, r0, #0x10
-	lsrs r4, r0, #0x10
-	cmp r4, #0x1f
-	bls _02010D8E
-	pop {r4, r5}
-	pop {r0}
-	bx r0
-	.pool
-	THUMB_FUNC_END sub_02010D88
-
-	THUMB_FUNC_START sub_02010DAC
-sub_02010DAC: @ 0x02010DAC
-	ldr r0, =gUnknown_3001230
-	movs r1, #0
-	str r1, [r0]
-	ldr r0, =gUnknown_3001220
-	strh r1, [r0]
-	ldr r0, =gUnknown_300122C
-	str r1, [r0]
-	bx lr
-	.pool
-	THUMB_FUNC_END sub_02010DAC
-
-	THUMB_FUNC_START sub_02010DC8
-sub_02010DC8: @ 0x02010DC8
-	push {r4, lr}
-	lsls r0, r0, #0x18
-	lsrs r0, r0, #0x18
-	lsls r1, r1, #0x18
-	lsrs r3, r1, #0x18
-	movs r4, #0
-	cmp r0, #1
-	beq _02010DFC
-	cmp r0, #1
-	bgt _02010DE2
-	cmp r0, #0
-	beq _02010DE8
-	b _02010E20
-_02010DE2:
-	cmp r0, #2
-	beq _02010E10
-	b _02010E20
-_02010DE8:
-	ldr r2, =gUnknown_300122C
-	movs r1, #1
-	lsls r1, r3
-	ldr r0, [r2]
-	orrs r0, r1
-	str r0, [r2]
-	b _02010E20
-	.pool
-_02010DFC:
-	ldr r2, =gUnknown_300122C
-	adds r1, r0, #0
-	lsls r1, r3
-	ldr r0, [r2]
-	bics r0, r1
-	str r0, [r2]
-	b _02010E20
-	.pool
-_02010E10:
-	ldr r0, =gUnknown_300122C
-	movs r1, #1
-	lsls r1, r3
-	ldr r0, [r0]
-	ands r0, r1
-	cmp r0, #0
-	beq _02010E20
-	movs r4, #1
-_02010E20:
-	adds r0, r4, #0
-	pop {r4}
-	pop {r1}
-	bx r1
-	.pool
-	THUMB_FUNC_END sub_02010DC8
-
-	THUMB_FUNC_START sub_02010E2C
-sub_02010E2C: @ 0x02010E2C
-	push {r4, r5, r6, r7, lr}
-	adds r7, r1, #0
-	lsls r0, r0, #0x10
-	lsrs r2, r0, #0x10
-	ldr r1, =gUnknown_3001234
-	ldr r0, =gUnknown_2020000
-	str r0, [r1]
-	ldr r0, =0x0000FFFF
-	cmp r2, r0
-	beq _02010E5C
-	adds r0, r2, #0
-	adds r1, r7, #0
-	bl sub_02010ECC
-	lsls r0, r0, #0x18
-	lsrs r5, r0, #0x18
-	b _02010EAE
-	.pool
-_02010E5C:
-	ldr r1, =gUnknown_3001228
-	ldr r5, =gUnknown_3001220
-	ldrh r0, [r5]
-	strh r0, [r1]
-	ldr r1, =gUnknown_3001224
-	ldr r6, =gUnknown_3001230
-	ldr r4, [r6]
-	str r4, [r1]
-	adds r0, #1
-	strh r0, [r5]
-	ldrh r0, [r5]
-	movs r1, #0xe
-	bl __umodsi3
-	strh r0, [r5]
-	adds r4, #1
-	str r4, [r6]
-	movs r5, #1
-	movs r4, #0
-_02010E82:
-	adds r0, r4, #0
-	adds r1, r7, #0
-	bl sub_02010ECC
-	adds r0, r4, #1
-	lsls r0, r0, #0x10
-	lsrs r4, r0, #0x10
-	cmp r4, #0xd
-	bls _02010E82
-	ldr r0, =gUnknown_300122C
-	ldr r0, [r0]
-	cmp r0, #0
-	beq _02010EAE
-	movs r5, #0xff
-	ldr r1, =gUnknown_3001220
-	ldr r0, =gUnknown_3001228
-	ldrh r0, [r0]
-	strh r0, [r1]
-	ldr r1, =gUnknown_3001230
-	ldr r0, =gUnknown_3001224
-	ldr r0, [r0]
-	str r0, [r1]
-_02010EAE:
-	adds r0, r5, #0
-	pop {r4, r5, r6, r7}
-	pop {r1}
-	bx r1
-	.pool
-	THUMB_FUNC_END sub_02010E2C
-
-	THUMB_FUNC_START sub_02010ECC
-sub_02010ECC: @ 0x02010ECC
-	push {r4, r5, r6, r7, lr}
-	mov r7, sl
-	mov r6, sb
-	mov r5, r8
-	push {r5, r6, r7}
-	adds r4, r1, #0
-	lsls r0, r0, #0x10
-	lsrs r6, r0, #0x10
-	ldr r0, =gUnknown_3001220
-	ldrh r0, [r0]
-	adds r0, r6, r0
-	lsls r0, r0, #0x10
-	lsrs r5, r0, #0x10
-	adds r0, r5, #0
-	movs r1, #0xe
-	bl __umodsi3
-	lsls r0, r0, #0x10
-	lsrs r5, r0, #0x10
-	ldr r2, =gUnknown_3001230
-	ldr r1, [r2]
-	movs r0, #1
-	ands r1, r0
-	lsls r0, r1, #3
-	subs r0, r0, r1
-	lsls r0, r0, #1
-	adds r0, r5, r0
-	lsls r0, r0, #0x10
-	lsrs r5, r0, #0x10
-	lsls r0, r6, #3
-	adds r0, r0, r4
-	ldr r1, [r0]
-	mov sl, r1
-	ldrh r4, [r0, #4]
-	movs r3, #0
-	mov sb, r2
-	ldr r2, =gUnknown_3001234
-	mov ip, r2
-	mov r8, ip
-	movs r2, #0
-	ldr r1, =0x00000FFF
-_02010F1E:
-	mov r7, r8
-	ldr r0, [r7]
-	adds r0, r0, r3
-	strb r2, [r0]
-	adds r0, r3, #1
-	lsls r0, r0, #0x10
-	lsrs r3, r0, #0x10
-	cmp r3, r1
-	bls _02010F1E
-	mov r0, ip
-	ldr r1, [r0]
-	ldr r2, =0x00000FF4
-	adds r0, r1, r2
-	strh r6, [r0]
-	ldr r3, =0x00000FF8
-	adds r2, r1, r3
-	ldr r0, =gRS_Unknown_8012025
-	str r0, [r2]
-	ldr r6, =0x00000FFC
-	adds r1, r1, r6
-	mov r7, sb
-	ldr r0, [r7]
-	str r0, [r1]
-	movs r3, #0
-	lsls r5, r5, #0x18
-	cmp r3, r4
-	bhs _02010F6C
-	mov r2, ip
-_02010F56:
-	ldr r1, [r2]
-	adds r1, r1, r3
-	mov r6, sl
-	adds r0, r6, r3
-	ldrb r0, [r0]
-	strb r0, [r1]
-	adds r0, r3, #1
-	lsls r0, r0, #0x10
-	lsrs r3, r0, #0x10
-	cmp r3, r4
-	blo _02010F56
-_02010F6C:
-	mov r0, sl
-	adds r1, r4, #0
-	bl sub_02011800
-	ldr r1, =gUnknown_3001234
-	ldr r1, [r1]
-	ldr r7, =0x00000FF6
-	adds r2, r1, r7
-	strh r0, [r2]
-	lsrs r0, r5, #0x18
-	bl sub_02011034
-	lsls r0, r0, #0x18
-	lsrs r0, r0, #0x18
-	pop {r3, r4, r5}
-	mov r8, r3
-	mov sb, r4
-	mov sl, r5
-	pop {r4, r5, r6, r7}
-	pop {r1}
-	bx r1
-	.pool
-	THUMB_FUNC_END sub_02010ECC
-
 	THUMB_FUNC_START sub_02010FBC
 sub_02010FBC: @ 0x02010FBC
 	push {r4, r5, r6, r7, lr}
@@ -357,7 +27,7 @@ _02010FD0:
 	bls _02010FD0
 	ldr r0, =0x00000FF8
 	adds r0, r4, r0
-	ldr r1, =gRS_Unknown_8012025
+	ldr r1, =0x08012025
 	str r1, [r0]
 	movs r3, #0
 	cmp r3, r2
@@ -601,7 +271,7 @@ _020111FE:
 	strh r6, [r0]
 	ldr r6, =0x00000FF8
 	adds r2, r1, r6
-	ldr r0, =gRS_Unknown_8012025
+	ldr r0, =0x08012025
 	str r0, [r2]
 	ldr r7, =0x00000FFC
 	adds r1, r1, r7
@@ -926,7 +596,7 @@ _020114E8:
 	ldr r1, =0x00000FF8
 	adds r0, r2, r1
 	ldr r1, [r0]
-	ldr r0, =gRS_Unknown_8012025
+	ldr r0, =0x08012025
 	adds r5, #1
 	cmp r1, r0
 	bne _02011538
@@ -993,7 +663,7 @@ _02011584:
 	ldr r1, =0x00000FF8
 	adds r0, r2, r1
 	ldr r1, [r0]
-	ldr r0, =gRS_Unknown_8012025
+	ldr r0, =0x08012025
 	cmp r1, r0
 	bne _020115D4
 	movs r5, #1
@@ -1059,7 +729,7 @@ _0201161C:
 	ldr r1, =0x00000FF8
 	adds r0, r2, r1
 	ldr r1, [r0]
-	ldr r0, =gRS_Unknown_8012025
+	ldr r0, =0x08012025
 	cmp r1, r0
 	bne _02011670
 	movs r5, #1
@@ -1227,7 +897,7 @@ sub_0201177C: @ 0x0201177C
 	ldr r0, =0x00000FF8
 	adds r0, r5, r0
 	ldr r1, [r0]
-	ldr r0, =gRS_Unknown_8012025
+	ldr r0, =0x08012025
 	cmp r1, r0
 	bne _020117E0
 	adds r0, r5, #0
@@ -1235,7 +905,7 @@ sub_0201177C: @ 0x0201177C
 	bl sub_02011800
 	lsls r0, r0, #0x10
 	lsrs r0, r0, #0x10
-	ldr r1, =gUnknown_2020FF4
+	ldr r1, =gUnknown_2020000 + 0xFF4
 	ldrh r1, [r1]
 	cmp r1, r0
 	bne _020117DC

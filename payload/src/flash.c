@@ -2,17 +2,26 @@
 #include <agb_flash.h>
 #include "global.h"
 #include "main.h"
+#include "flash.h"
 
 struct SaveBlockChunk
 {
-    void * ptr;
-    size_t size;
+    u8 * ptr;
+    u16 size;
 };
 
 u8 sub_02010E2C(u16 a0, const struct SaveBlockChunk * a1);
+u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
+u16 sub_02011800(u8 *, size_t);
+u8 sub_02011034(u8);
 
+u16 gUnknown_3001220;
+u32 gUnknown_3001224;
+u16 gUnknown_3001228;
 u32 gUnknown_300122C;
+u32 gUnknown_3001230;
+struct UnkEwramStruct * gUnknown_3001234;
 bool32 gUnknown_300123C;
 
 EWRAM_DATA struct SaveBlock2 gSaveBlock2 = {};
@@ -117,12 +126,12 @@ u8 sub_02010C60(u8 a0)
     return 0xFF;
 }
 
-u8 sub_02010C80(void)
+u8 sub_02010C80(u32 unused)
 {
     return sub_02010BF0(0xFFFF, gUnknown_2012E9C);
 }
 
-void sub_02010C9C(void)
+void msg_load_gfx(void)
 {
     REG_DISPCNT = 0;
     REG_BG0HOFS = 0;
@@ -134,3 +143,226 @@ void sub_02010C9C(void)
     REG_BG0CNT = BGCNT_SCREENBASE(28) | BGCNT_TXT512x512;
     REG_DISPCNT = DISPCNT_BG0_ON;
 }
+
+void msg_display(u32 a0)
+{
+    switch (a0)
+    {
+        case 0:
+            REG_BG0HOFS = 0;
+            REG_BG0VOFS = 0;
+            break;
+        case 1:
+            REG_BG0HOFS = 0x100;
+            REG_BG0VOFS = 0;
+            break;
+        case 2:
+            REG_BG0HOFS = 0x100;
+            REG_BG0VOFS = 0xB0;
+            break;
+        case 3:
+            REG_BG0HOFS = 0;
+            REG_BG0VOFS = 0xB0;
+            break;
+        case 4:
+            REG_BG0HOFS = 0;
+            REG_BG0VOFS = 0x160;
+            break;
+    }
+}
+
+void sub_02010D88(void)
+{
+    u16 i;
+    for (i = 0; i < 32; i++)
+        EraseFlashSector(i);
+}
+
+void sub_02010DAC(void)
+{
+    gUnknown_3001230 = 0;
+    gUnknown_3001220 = 0;
+    gUnknown_300122C = 0;
+}
+
+bool32 sub_02010DC8(u8 action, u8 flagno)
+{
+    bool32 result = FALSE;
+    switch (action)
+    {
+        case 0:
+            gUnknown_300122C |= (1 << flagno);
+            break;
+        case 1:
+            gUnknown_300122C &= ~(1 << flagno);
+            break;
+        case 2:
+            if (gUnknown_300122C & (1 << flagno))
+                result = TRUE;
+            break;
+    }
+    return result;
+}
+
+u8 sub_02010E2C(u16 a0, const struct SaveBlockChunk * a1)
+{
+    u8 result;
+    u16 i;
+    gUnknown_3001234 = (struct UnkEwramStruct *)gUnknown_2020000;
+    if (a0 != 0xFFFF)
+    {
+        result = sub_02010ECC(a0, a1);
+    }
+    else
+    {
+        gUnknown_3001228 = gUnknown_3001220;
+        gUnknown_3001224 = gUnknown_3001230;
+        gUnknown_3001220++;
+        gUnknown_3001220 %= 14;
+        gUnknown_3001230++;
+        result = 1;
+        for (i = 0; i < 14; i++)
+            sub_02010ECC(i, a1);
+        if (gUnknown_300122C)
+        {
+            result = 0xFF;
+            gUnknown_3001220 = gUnknown_3001228;
+            gUnknown_3001230 = gUnknown_3001224;
+        }
+    }
+    return result;
+}
+
+#ifdef NONMATCHING
+u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1)
+{
+    u16 r3;
+    u8 * r10;
+    u16 r4;
+    u16 r5 = a0 + gUnknown_3001220;
+    r5 %= 14;
+    r5 += 14 * (gUnknown_3001230 & 1);
+    r10 = a1[a0].ptr;
+    r4 = a1[a0].size;
+    for (r3 = 0; r3 < 0x1000; r3++)
+    {
+        gUnknown_3001234->unk_0000[r3] = 0;
+    }
+    gUnknown_3001234->unk_0FF4 = a0;
+    gUnknown_3001234->unk_0FF8 = (struct UnkEwramSubstruct){0x25, 0x20, 0x01, 0x08};
+    gUnknown_3001234->unk_0FFC = gUnknown_3001230;
+    for (r3 = 0; r3 < r4; r3++)
+    {
+        gUnknown_3001234->unk_0000[r3] = r10[r3];
+    }
+    gUnknown_3001234->unk_0FF6 = sub_02011800(r10, r4);
+    return sub_02011034(r5);
+}
+#else
+NAKED
+u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1)
+{
+    asm_unified("\tpush {r4, r5, r6, r7, lr}\n"
+                "\tmov r7, sl\n"
+                "\tmov r6, sb\n"
+                "\tmov r5, r8\n"
+                "\tpush {r5, r6, r7}\n"
+                "\tadds r4, r1, #0\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r6, r0, #0x10\n"
+                "\tldr r0, =gUnknown_3001220\n"
+                "\tldrh r0, [r0]\n"
+                "\tadds r0, r6, r0\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r5, r0, #0x10\n"
+                "\tadds r0, r5, #0\n"
+                "\tmovs r1, #0xe\n"
+                "\tbl __umodsi3\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r5, r0, #0x10\n"
+                "\tldr r2, =gUnknown_3001230\n"
+                "\tldr r1, [r2]\n"
+                "\tmovs r0, #1\n"
+                "\tands r1, r0\n"
+                "\tlsls r0, r1, #3\n"
+                "\tsubs r0, r0, r1\n"
+                "\tlsls r0, r0, #1\n"
+                "\tadds r0, r5, r0\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r5, r0, #0x10\n"
+                "\tlsls r0, r6, #3\n"
+                "\tadds r0, r0, r4\n"
+                "\tldr r1, [r0]\n"
+                "\tmov sl, r1\n"
+                "\tldrh r4, [r0, #4]\n"
+                "\tmovs r3, #0\n"
+                "\tmov sb, r2\n"
+                "\tldr r2, =gUnknown_3001234\n"
+                "\tmov ip, r2\n"
+                "\tmov r8, ip\n"
+                "\tmovs r2, #0\n"
+                "\tldr r1, =0x00000FFF\n"
+                "_02010F1E:\n"
+                "\tmov r7, r8\n"
+                "\tldr r0, [r7]\n"
+                "\tadds r0, r0, r3\n"
+                "\tstrb r2, [r0]\n"
+                "\tadds r0, r3, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r3, r0, #0x10\n"
+                "\tcmp r3, r1\n"
+                "\tbls _02010F1E\n"
+                "\tmov r0, ip\n"
+                "\tldr r1, [r0]\n"
+                "\tldr r2, =0x00000FF4\n"
+                "\tadds r0, r1, r2\n"
+                "\tstrh r6, [r0]\n"
+                "\tldr r3, =0x00000FF8\n"
+                "\tadds r2, r1, r3\n"
+                "\tldr r0, =0x08012025\n"
+                "\tstr r0, [r2]\n"
+                "\tldr r6, =0x00000FFC\n"
+                "\tadds r1, r1, r6\n"
+                "\tmov r7, sb\n"
+                "\tldr r0, [r7]\n"
+                "\tstr r0, [r1]\n"
+                "\tmovs r3, #0\n"
+                "\tlsls r5, r5, #0x18\n"
+                "\tcmp r3, r4\n"
+                "\tbhs _02010F6C\n"
+                "\tmov r2, ip\n"
+                "_02010F56:\n"
+                "\tldr r1, [r2]\n"
+                "\tadds r1, r1, r3\n"
+                "\tmov r6, sl\n"
+                "\tadds r0, r6, r3\n"
+                "\tldrb r0, [r0]\n"
+                "\tstrb r0, [r1]\n"
+                "\tadds r0, r3, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r3, r0, #0x10\n"
+                "\tcmp r3, r4\n"
+                "\tblo _02010F56\n"
+                "_02010F6C:\n"
+                "\tmov r0, sl\n"
+                "\tadds r1, r4, #0\n"
+                "\tbl sub_02011800\n"
+                "\tldr r1, =gUnknown_3001234\n"
+                "\tldr r1, [r1]\n"
+                "\tldr r7, =0x00000FF6\n"
+                "\tadds r2, r1, r7\n"
+                "\tstrh r0, [r2]\n"
+                "\tlsrs r0, r5, #0x18\n"
+                "\tbl sub_02011034\n"
+                "\tlsls r0, r0, #0x18\n"
+                "\tlsrs r0, r0, #0x18\n"
+                "\tpop {r3, r4, r5}\n"
+                "\tmov r8, r3\n"
+                "\tmov sb, r4\n"
+                "\tmov sl, r5\n"
+                "\tpop {r4, r5, r6, r7}\n"
+                "\tpop {r1}\n"
+                "\tbx r1\n"
+                "\t.pool");
+}
+#endif

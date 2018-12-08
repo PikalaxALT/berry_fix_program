@@ -2,6 +2,7 @@
 #include "global.h"
 #include "main.h"
 #include "rtc.h"
+#include "flash.h"
 
 BSS_DATA s32 gUnknown_3001000;
 BSS_DATA s32 gFiller_3001004;
@@ -18,22 +19,17 @@ u8 gFiller_30011A4[0x54];
 u32 gUnknown_3001204;
 u32 gGameVersion;
 
-EWRAM_DATA u8 gUnknown_2020000[0xFF4] = {};
-EWRAM_DATA u8 gUnknown_2020FF4[0xBDC] = {};
+EWRAM_DATA u8 gUnknown_2020000[0x1BD0] = {};
 EWRAM_DATA u8 gUnknown_2021BD0[0x6430] = {};
 
 void IntrMain(void);
-void sub_02010C9C(void);
 void ReadKeys(void);
 void sub_020101C0(void);
 void sub_020101BC(void);
 void main_callback(u32 *, void *, void *);
-bool32 sub_0201189C(void);
 bool32 sub_02010B9C(void);
 bool8 sub_02010C80(u32);
 
-void sub_02010D00(u32);
-bool32 sub_02011864(void);
 
 const char gBerryFixGameCode[] = "AGBJ";
 const IntrFunc gIntrFuncPointers[] = {
@@ -80,7 +76,7 @@ void AgbMain(void)
         REG_IE |= INTR_FLAG_GAMEPAK;
     REG_DISPSTAT = DISPSTAT_VBLANK_INTR;
     REG_IME = INTR_FLAG_VBLANK;
-    sub_02010C9C();
+    msg_load_gfx();
     gUnknown_3001204 = 0;
     gUnknown_3001194 = 0;
     for (;;)
@@ -166,8 +162,7 @@ s32 validate_rom_header_internal(void)
 NAKED
 s32 validate_rom_header_internal(void)
 {
-    asm(".syntax unified\n"
-        "\tpush {r4, r5, r6, lr}\n"
+    asm_unified("\tpush {r4, r5, r6, lr}\n"
         "\tldr r0, =RomHeaderGameCode + 3\n"
         "\tldrb r3, [r0]\n"
         "\tadds r0, #0xd\n"
@@ -242,8 +237,7 @@ s32 validate_rom_header_internal(void)
         "_020102E2:\n"
         "\tpop {r4, r5, r6}\n"
         "\tpop {r1}\n"
-        "\tbx r1\n"
-        "\t.syntax divided");
+        "\tbx r1");
 }
 #endif
 
@@ -261,7 +255,7 @@ void main_callback(u32 * a0, void * unused1, void * unused2)
     switch (*a0)
     {
         case 0:
-            sub_02010D00(0);
+            msg_display(0);
             if (++gUnknown_3001000 >= 180)
             {
                 gUnknown_3001000 = 0;
@@ -328,7 +322,7 @@ void main_callback(u32 * a0, void * unused1, void * unused2)
                 *a0 = 10;
             break;
         case 10:
-            sub_02010D00(4);
+            msg_display(4);
             if (sub_0201189C() == TRUE)
             {
                 gUnknown_3001190 |= 1;
@@ -341,16 +335,16 @@ void main_callback(u32 * a0, void * unused1, void * unused2)
             if (gUnknown_3001190 == 0)
                 *a0 = 6;
             else
-                sub_02010D00(1);
+                msg_display(1);
             break;
         case 6:
-            sub_02010D00(3);
+            msg_display(3);
             break;
         case 7:
-            sub_02010D00(2);
+            msg_display(2);
             break;
         case 11:
-            sub_02010D00(2);
+            msg_display(2);
             break;
     }
 }

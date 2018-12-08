@@ -114,8 +114,6 @@ SECTIONS {
         GPIOPortDirection = .;
         . += 2;
         GPIOPortReadEnable = .;
-        . = 0x012025;
-        gRS_Unknown_8012025 = .;
 	} =0
 
 	/DISCARD/ :
