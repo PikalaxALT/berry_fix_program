@@ -17,4 +17,6 @@ extern u8 gUnknown_2020000[0xFF4];
 extern u8 gUnknown_2020FF4[0xBDC];
 extern u8 gUnknown_2021BD0[0x6430];
 
+extern const IntrFunc gIntrFuncPointers[];
+
 #endif //GUARD_MAIN_H
