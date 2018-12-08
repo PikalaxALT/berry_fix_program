@@ -9,10 +9,11 @@ struct SaveBlockChunk
     size_t size;
 };
 
-u8 sub_02010E2C(u16 a0, u8 ** a1);
-u8 sub_02011470(u16 a0, u8 ** a1);
+u8 sub_02010E2C(u16 a0, const struct SaveBlockChunk * a1);
+u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
 
-extern bool32 gUnknown_300123C;
+u32 gUnknown_300122C;
+bool32 gUnknown_300123C;
 
 EWRAM_DATA struct SaveBlock2 gSaveBlock2 = {};
 EWRAM_DATA struct SaveBlock1 gSaveBlock1 = {};
@@ -69,12 +70,67 @@ void sub_02010BCC(u16 sectorNum, ptrdiff_t offset, void * dest, size_t size)
     ReadFlash(sectorNum, offset, dest, size);
 }
 
-u8 sub_02010BDC(u16 a0, u8 ** a1)
+u8 sub_02010BDC(u16 a0, const struct SaveBlockChunk * a1)
 {
     return sub_02010E2C(a0, a1);
 }
 
-u8 sub_02010BF0(u16 a0, u8 ** a1)
+u8 sub_02010BF0(u16 a0, const struct SaveBlockChunk * a1)
 {
     return sub_02011470(a0, a1);
+}
+
+u32 * sub_02010C04(void)
+{
+    return &gUnknown_300122C;
+}
+
+s32 sub_02010C0C(u8 a0)
+{
+    u8 i;
+
+    switch (a0)
+    {
+        case 0:
+        default:
+            sub_02010BDC(0xFFFF, gUnknown_2012E9C);
+            break;
+        case 1:
+            for (i = 0; i < 5; i++)
+            {
+                sub_02010BDC(i, gUnknown_2012E9C);
+            }
+            break;
+        case 2:
+            sub_02010BDC(0, gUnknown_2012E9C);
+            break;
+    }
+
+    return 0;
+}
+
+u8 sub_02010C60(u8 a0)
+{
+    sub_02010C0C(a0);
+    if (*sub_02010C04() == 0)
+        return 1;
+    return 0xFF;
+}
+
+u8 sub_02010C80(void)
+{
+    return sub_02010BF0(0xFFFF, gUnknown_2012E9C);
+}
+
+void sub_02010C9C(void)
+{
+    REG_DISPCNT = 0;
+    REG_BG0HOFS = 0;
+    REG_BG0VOFS = 0;
+    REG_BLDCNT = 0;
+    LZ77UnCompVram(gUnknown_2013758, (void *)BG_VRAM);
+    LZ77UnCompVram(gUnknown_2012F2C, (void *)BG_SCREEN_ADDR(28));
+    CpuCopy16(gUnknown_2012F0C, (void *)BG_PLTT, 0x200);
+    REG_BG0CNT = BGCNT_SCREENBASE(28) | BGCNT_TXT512x512;
+    REG_DISPCNT = DISPCNT_BG0_ON;
 }
