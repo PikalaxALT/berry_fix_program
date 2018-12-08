@@ -11,8 +11,6 @@ SECTIONS {
 		src/rtc.o(.text);
 		src/flash.o(.text);
 		asm/flash.o(.text);
-		src/berry_fix.o(.text);
-		asm/berry_fix.o(.text);
 	} =0
 
 	lib_text :
@@ -50,7 +48,6 @@ SECTIONS {
 	    src/main.o(.rodata);
 	    src/rtc.o(.rodata);
 	    src/flash.o(.rodata);
-	    src/berry_fix.o(.rodata);
 	} =0
 
 	lib_rodata :
