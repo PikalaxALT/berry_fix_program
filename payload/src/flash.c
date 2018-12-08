@@ -12,9 +12,10 @@ struct SaveBlockChunk
 
 u8 sub_02010E2C(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1);
+u8 sub_02011034(u8, u8 *);
+u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
 u16 sub_02011800(u8 *, size_t);
-u8 sub_02011034(u8, u8 *);
 
 u16 gUnknown_3001220;
 u32 gUnknown_3001224;
@@ -475,4 +476,37 @@ s32 sub_020110BC(void)
     gUnknown_3001238 = 0;
     gUnknown_300122C = 0;
     return 0;
+}
+
+u8 sub_02011000(u16 a0, const struct SaveBlockChunk * a1)
+{
+    u8 response;
+    if (gUnknown_3001238 < a0 - 1)
+    {
+        response = 1;
+        sub_02010ECC(gUnknown_3001238, a1);
+        gUnknown_3001238++;
+        if (gUnknown_300122C != 0)
+        {
+            response = 0xFF;
+            gUnknown_3001220 = gUnknown_3001228;
+            gUnknown_3001230 = gUnknown_3001224;
+        }
+    }
+    else
+        response = 0xFF;
+    return response;
+}
+
+u8 sub_02011160(u16 a0, const struct SaveBlockChunk * a1)
+{
+    u8 response = 1;
+    sub_020111AC(a0 - 1, a1);
+    if (gUnknown_300122C != 0)
+    {
+        response = 0xFF;
+        gUnknown_3001220 = gUnknown_3001228;
+        gUnknown_3001230 = gUnknown_3001224;
+    }
+    return response;
 }
