@@ -1,0 +1,28 @@
+language: generic
+dist: trusty
+sudo: false
+env:
+  global:
+    - DEVKITPRO=$HOME
+    - DEVKITARM=$DEVKITPRO/devkitARM
+addons:
+  apt:
+    packages:
+      - gcc-multilib
+      - linux-libc-dev
+cache:
+  apt: true
+install:
+  - pushd $HOME
+  - travis_retry wget https://github.com/devkitPro/buildscripts/releases/download/devkitARM_r49/devkitARM_r49-linux.tar.xz
+  - tar xJf devkitARM*.tar.xz
+  - travis_retry git clone https://github.com/pikalaxalt/agbsdk.git -b new_layout_with_libs
+  - cd agbsdk && make && make install prefix=$TRAVIS_BUILD_DIR
+  - popd
+matrix:
+  include:
+    - os: linux
+      env: _="Build"
+      script:
+        - ./build_tools.sh
+        - make -j2 compare
