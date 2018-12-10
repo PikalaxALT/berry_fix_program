@@ -510,3 +510,248 @@ u8 sub_02011160(u16 a0, const struct SaveBlockChunk * a1)
     }
     return response;
 }
+
+#ifdef NONMATCHING
+u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1)
+{
+    u8 * r10;
+    u16 r3;
+    u16 r4;
+    u8 result;
+    u16 r5 = a0 + gUnknown_3001220;
+    r5 %= 14;
+    r5 += 14 * (gUnknown_3001230 & 1);
+    r10 = a1[a0].ptr;
+    r3 = a1[a0].size;
+    for (r4 = 0; r4 < 0x1000; r4++)
+    {
+        gUnknown_3001234->unk_0000[r4] = 0;
+    }
+    gUnknown_3001234->unk_0FF4 = a0;
+    gUnknown_3001234->unk_0FF8 = (struct UnkEwramSubstruct){0x25, 0x20, 0x01, 0x08};
+    gUnknown_3001234->unk_0FFC = gUnknown_3001230;
+    for (r4 = 0; r4 < r3; r4++)
+    {
+        gUnknown_3001234->unk_0000[r4] = r10[r4];
+    }
+    gUnknown_3001234->unk_0FF6 = sub_02011800(r10, r3);
+    EraseFlashSector(r5);
+    result = 1;
+    for (r4 = 0; r4 < 0xFF8; r4++)
+    {
+        if (ProgramFlashByte(r5, r4, gUnknown_3001234->unk_0000[r4]))
+        {
+            result = 0xFF;
+            break;
+        }
+    }
+    if (result == 0xFF)
+    {
+        sub_02010DC8(0, r5);
+        return 0xFF;
+    }
+    result = 1;
+    for (r4 = 0; r4 < 7; r4++)
+    {
+        if (ProgramFlashByte(r5, r4 + 0xFF9, (&gUnknown_3001234->unk_0FF8.unk1)[r4]))
+        {
+            result = 0xFF;
+            break;
+        }
+    }
+    if (result == 0xFF)
+    {
+        sub_02010DC8(0, r5);
+        return 0xFF;
+    }
+    sub_02010DC8(1, r5);
+    return 1;
+}
+#else
+NAKED
+u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1)
+{
+    asm_unified("\tpush {r4, r5, r6, r7, lr}\n"
+                "\tmov r7, sl\n"
+                "\tmov r6, sb\n"
+                "\tmov r5, r8\n"
+                "\tpush {r5, r6, r7}\n"
+                "\tadds r4, r1, #0\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r6, r0, #0x10\n"
+                "\tldr r0, =gUnknown_3001220\n"
+                "\tldrh r0, [r0]\n"
+                "\tadds r0, r6, r0\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r5, r0, #0x10\n"
+                "\tadds r0, r5, #0\n"
+                "\tmovs r1, #0xe\n"
+                "\tbl __umodsi3\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r5, r0, #0x10\n"
+                "\tldr r2, =gUnknown_3001230\n"
+                "\tldr r1, [r2]\n"
+                "\tmovs r0, #1\n"
+                "\tands r1, r0\n"
+                "\tlsls r0, r1, #3\n"
+                "\tsubs r0, r0, r1\n"
+                "\tlsls r0, r0, #1\n"
+                "\tadds r0, r5, r0\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r5, r0, #0x10\n"
+                "\tlsls r0, r6, #3\n"
+                "\tadds r0, r0, r4\n"
+                "\tldr r1, [r0]\n"
+                "\tmov sl, r1\n"
+                "\tldrh r3, [r0, #4]\n"
+                "\tmovs r4, #0\n"
+                "\tmov sb, r2\n"
+                "\tldr r2, =gUnknown_3001234\n"
+                "\tmov ip, r2\n"
+                "\tmov r8, ip\n"
+                "\tmovs r2, #0\n"
+                "\tldr r1, =0x00000FFF\n"
+                "_020111FE:\n"
+                "\tmov r7, r8\n"
+                "\tldr r0, [r7]\n"
+                "\tadds r0, r0, r4\n"
+                "\tstrb r2, [r0]\n"
+                "\tadds r0, r4, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r4, r0, #0x10\n"
+                "\tcmp r4, r1\n"
+                "\tbls _020111FE\n"
+                "\tmov r0, ip\n"
+                "\tldr r1, [r0]\n"
+                "\tldr r2, =0x00000FF4\n"
+                "\tadds r0, r1, r2\n"
+                "\tstrh r6, [r0]\n"
+                "\tldr r6, =0x00000FF8\n"
+                "\tadds r2, r1, r6\n"
+                "\tldr r0, =0x08012025\n"
+                "\tstr r0, [r2]\n"
+                "\tldr r7, =0x00000FFC\n"
+                "\tadds r1, r1, r7\n"
+                "\tmov r2, sb\n"
+                "\tldr r0, [r2]\n"
+                "\tstr r0, [r1]\n"
+                "\tmovs r4, #0\n"
+                "\tlsls r6, r5, #0x18\n"
+                "\tmov r8, r6\n"
+                "\tcmp r4, r3\n"
+                "\tbhs _0201124E\n"
+                "\tmov r2, ip\n"
+                "_02011238:\n"
+                "\tldr r1, [r2]\n"
+                "\tadds r1, r1, r4\n"
+                "\tmov r7, sl\n"
+                "\tadds r0, r7, r4\n"
+                "\tldrb r0, [r0]\n"
+                "\tstrb r0, [r1]\n"
+                "\tadds r0, r4, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r4, r0, #0x10\n"
+                "\tcmp r4, r3\n"
+                "\tblo _02011238\n"
+                "_0201124E:\n"
+                "\tmov r0, sl\n"
+                "\tadds r1, r3, #0\n"
+                "\tbl sub_02011800\n"
+                "\tldr r1, =gUnknown_3001234\n"
+                "\tldr r1, [r1]\n"
+                "\tldr r2, =0x00000FF6\n"
+                "\tadds r1, r1, r2\n"
+                "\tstrh r0, [r1]\n"
+                "\tldr r0, =EraseFlashSector\n"
+                "\tldr r1, [r0]\n"
+                "\tadds r0, r5, #0\n"
+                "\tbl _call_via_r1\n"
+                "\tmovs r6, #1\n"
+                "\tmovs r4, #0\n"
+                "\tldr r7, =0x00000FF7\n"
+                "\tmov sb, r7\n"
+                "\tldr r7, =ProgramFlashByte\n"
+                "\tb _020112AE\n"
+                "\t.pool\n"
+                "_020112A8:\n"
+                "\tadds r0, r4, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r4, r0, #0x10\n"
+                "_020112AE:\n"
+                "\tcmp r4, sb\n"
+                "\tbhi _020112CC\n"
+                "\tldr r0, =gUnknown_3001234\n"
+                "\tldr r0, [r0]\n"
+                "\tadds r0, r0, r4\n"
+                "\tldrb r2, [r0]\n"
+                "\tldr r3, [r7]\n"
+                "\tadds r0, r5, #0\n"
+                "\tadds r1, r4, #0\n"
+                "\tbl _call_via_r3\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tcmp r0, #0\n"
+                "\tbeq _020112A8\n"
+                "\tmovs r6, #0xff\n"
+                "_020112CC:\n"
+                "\tcmp r6, #0xff\n"
+                "\tbne _020112DC\n"
+                "\tmov r0, r8\n"
+                "\tlsrs r1, r0, #0x18\n"
+                "\tb _02011334\n"
+                "\t.pool\n"
+                "_020112DC:\n"
+                "\tmovs r6, #1\n"
+                "\tmovs r4, #0\n"
+                "\tldr r1, =ProgramFlashByte\n"
+                "\tmov sb, r1\n"
+                "\tldr r7, =0x00000FF9\n"
+                "\tb _020112F6\n"
+                "\t.pool\n"
+                "_020112F0:\n"
+                "\tadds r0, r4, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r4, r0, #0x10\n"
+                "_020112F6:\n"
+                "\tcmp r4, #6\n"
+                "\tbhi _02011318\n"
+                "\tadds r1, r4, r7\n"
+                "\tldr r0, =gUnknown_3001234\n"
+                "\tldr r0, [r0]\n"
+                "\tadds r0, r4, r0\n"
+                "\tadds r0, r0, r7\n"
+                "\tldrb r2, [r0]\n"
+                "\tmov r0, sb\n"
+                "\tldr r3, [r0]\n"
+                "\tadds r0, r5, #0\n"
+                "\tbl _call_via_r3\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tcmp r0, #0\n"
+                "\tbeq _020112F0\n"
+                "\tmovs r6, #0xff\n"
+                "_02011318:\n"
+                "\tcmp r6, #0xff\n"
+                "\tbeq _02011330\n"
+                "\tmov r2, r8\n"
+                "\tlsrs r1, r2, #0x18\n"
+                "\tmovs r0, #1\n"
+                "\tbl sub_02010DC8\n"
+                "\tmovs r0, #1\n"
+                "\tb _0201133C\n"
+                "\t.pool\n"
+                "_02011330:\n"
+                "\tmov r6, r8\n"
+                "\tlsrs r1, r6, #0x18\n"
+                "_02011334:\n"
+                "\tmovs r0, #0\n"
+                "\tbl sub_02010DC8\n"
+                "\tmovs r0, #0xff\n"
+                "_0201133C:\n"
+                "\tpop {r3, r4, r5}\n"
+                "\tmov r8, r3\n"
+                "\tmov sb, r4\n"
+                "\tmov sl, r5\n"
+                "\tpop {r4, r5, r6, r7}\n"
+                "\tpop {r1}\n"
+                "\tbx r1");
+}
+#endif
