@@ -825,3 +825,111 @@ u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1)
     }
     return 1;
 }
+
+u8 sub_02011568(const struct SaveBlockChunk * a1)
+{
+    u16 r4;
+    u32 sp0;
+    u32 r1;
+    u32 r8 = 0;
+    u32 r9 = 0;
+    u32 r6 = 0;
+    u16 r2;
+    bool32 r5 = FALSE;
+    for (r4 = 0; r4 < 14; r4++)
+    {
+        sub_020117E8(r4, gUnknown_3001234->unk_0000);
+        if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025)
+        {
+            r5 = TRUE;
+            r2 = sub_02011800(gUnknown_3001234->unk_0000, a1[gUnknown_3001234->unk_0FF4].size);
+            if (gUnknown_3001234->unk_0FF6 == r2)
+            {
+                r8 = gUnknown_3001234->unk_0FFC;
+                r6 |= (1 << gUnknown_3001234->unk_0FF4);
+            }
+        }
+    }
+    if (r5)
+    {
+        sp0 = r6 == 0x3FFF ? 1 : 0xFF;
+    }
+    else
+    {
+        sp0 = 0;
+    }
+
+    r6 = 0;
+    r5 = 0;
+    for (r4 = 0; r4 < 14; r4++)
+    {
+        sub_020117E8(r4 + 14, gUnknown_3001234->unk_0000);
+        if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025)
+        {
+            r5 = TRUE;
+            r2 = sub_02011800(gUnknown_3001234->unk_0000, a1[gUnknown_3001234->unk_0FF4].size);
+            if (gUnknown_3001234->unk_0FF6 == r2)
+            {
+                r9 = gUnknown_3001234->unk_0FFC;
+                r6 |= (1 << gUnknown_3001234->unk_0FF4);
+            }
+        }
+    }
+    if (r5)
+    {
+        r1 = r6 == 0x3FFF ? 1 : 0xFF;
+    }
+    else
+    {
+        r1 = 0;
+    }
+
+    if (sp0 == 1)
+    {
+        if (r1 == 1)
+        {
+            if ((r8 == 0xFFFFFFFF && r9 == 0) || (r8 == 0 && r9 == 0xFFFFFFFF))
+            {
+                if (r8 + 1 < r9 + 1)
+                    gUnknown_3001230 = r9;
+                else
+                    gUnknown_3001230 = r8;
+            }
+            else
+            {
+                if (r8 < r9)
+                    gUnknown_3001230 = r9;
+                else
+                    gUnknown_3001230 = r8;
+            }
+            return 1;
+        }
+        else
+        {
+            gUnknown_3001230 = r8;
+            if (r1 == 0xFF)
+                return 0xFF;
+        }
+        return 1;
+    }
+    else
+    {
+        if (r1 == 1)
+        {
+            gUnknown_3001230 = r9;
+            if (sp0 == 0xFF)
+                return 0xFF;
+            else
+                return 1;
+        }
+    }
+    if (sp0 == 0 && r1 == 0)
+    {
+        gUnknown_3001230 = 0;
+        gUnknown_3001220 = 0;
+        return 0;
+    }
+    gUnknown_3001230 = 0;
+    gUnknown_3001220 = 0;
+    return 2;
+}
