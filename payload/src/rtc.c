@@ -7,7 +7,6 @@ struct Time gUnknown_3001210;
 struct Time gUnknown_3001218;
 
 static u16 sRtcProbeStatus;
-static u32 filler_300100C;
 static struct SiiRtcInfo sRtcInfoBuffer;
 static u8 sRtcProbeCode;
 static u16 sImeBak;

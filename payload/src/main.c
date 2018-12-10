@@ -5,17 +5,13 @@
 #include "flash.h"
 
 static s32 gUnknown_3001000;
-static s32 gFiller_3001004;
 IntrFunc gIntrTable[16];
 u16 gHeldKeys;
 u16 gNewKeys;
 u8 gUnknown_3001090[0x100];
 u32 gUnknown_3001190;
 u32 gUnknown_3001194;
-u32 gFiller_3001198;
-u32 gFiller_300119C;
-u32 gUnknown_30011A0;
-u8 gFiller_30011A4[0x54];
+u32 gUnknown_30011A0[0x19];
 u32 gUnknown_3001204;
 u32 gGameVersion;
 
@@ -82,7 +78,7 @@ void AgbMain(void)
     {
         VBlankIntrWait();
         ReadKeys();
-        main_callback(&gUnknown_3001204, &gUnknown_30011A0, gUnknown_2020000);
+        main_callback(&gUnknown_3001204, gUnknown_30011A0, gUnknown_2020000);
     }
 }
 

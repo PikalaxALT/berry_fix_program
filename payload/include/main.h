@@ -9,7 +9,7 @@ extern u16 gNewKeys;
 extern u8 gUnknown_3001090[];
 extern u32 gUnknown_3001190;
 extern u32 gUnknown_3001194;
-extern u32 gUnknown_30011A0;
+extern u32 gUnknown_30011A0[];
 extern u32 gUnknown_3001204;
 extern u32 gGameVersion;
 
