@@ -2,22 +2,22 @@
     .include "rtc.o"
 
     .align 4
-gUnknown_3001220: @ 0x03001220
+gFirstSaveSector: @ 0x03001220
 	.space 0x4
 
-gUnknown_3001224: @ 0x03001224
+gPrevSaveCounter: @ 0x03001224
 	.space 0x4
 
-gUnknown_3001228: @ 0x03001228
+gLastKnownGoodSector: @ 0x03001228
 	.space 0x4
 
-gUnknown_300122C: @ 0x0300122C
+gDamagedSaveSectors: @ 0x0300122C
 	.space 0x4
 
-gUnknown_3001230: @ 0x03001230
+gSaveCounter: @ 0x03001230
 	.space 0x4
 
-gUnknown_3001234: @ 0x03001234
+gFastSaveSection: @ 0x03001234
 	.space 0x4
 
 gUnknown_3001238:

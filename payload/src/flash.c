@@ -8,26 +8,26 @@
 
 struct SaveBlockChunk
 {
-    u8 * ptr;
+    u8 * data;
     u16 size;
 };
 
-u8 sub_02010E2C(u16 a0, const struct SaveBlockChunk * a1);
-u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1);
-u8 sub_02011034(u8, u8 *);
+u8 WriteSaveBlockChunks(u16 a0, const struct SaveBlockChunk * a1);
+u8 WriteSingleChunk(u16 a0, const struct SaveBlockChunk * a1);
+u8 TryWriteSector(u8, u8 *);
 u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1);
-u8 sub_02011568(const struct SaveBlockChunk * a1);
-u32 flash_sector_read(u8 a0, u8 * a1);
-u16 flash_sector_checksum(const void *, u16);
+u8 GetSaveValidStatus(const struct SaveBlockChunk * a1);
+u32 DoReadFlashWholeSection(u8 a0, struct SaveSector * a1);
+u16 CalculateChecksum(const void *, u16);
 
-u16 gUnknown_3001220;
-u32 gUnknown_3001224;
-u16 gUnknown_3001228;
-u32 gUnknown_300122C;
-u32 gUnknown_3001230;
-struct UnkEwramStruct * gUnknown_3001234;
+u16 gFirstSaveSector;
+u32 gPrevSaveCounter;
+u16 gLastKnownGoodSector;
+u32 gDamagedSaveSectors;
+u32 gSaveCounter;
+struct SaveSector * gFastSaveSection;
 u16 gUnknown_3001238;
 bool32 gUnknown_300123C;
 
@@ -88,7 +88,7 @@ void sub_02010BCC(u16 sectorNum, ptrdiff_t offset, void * dest, size_t size)
 
 u8 sub_02010BDC(u16 a0, const struct SaveBlockChunk * a1)
 {
-    return sub_02010E2C(a0, a1);
+    return WriteSaveBlockChunks(a0, a1);
 }
 
 u8 sub_02010BF0(u16 a0, const struct SaveBlockChunk * a1)
@@ -98,7 +98,7 @@ u8 sub_02010BF0(u16 a0, const struct SaveBlockChunk * a1)
 
 u32 * sub_02010C04(void)
 {
-    return &gUnknown_300122C;
+    return &gDamagedSaveSectors;
 }
 
 s32 sub_02010C0C(u8 a0)
@@ -178,856 +178,531 @@ void msg_display(u32 a0)
     }
 }
 
-void sub_02010D88(void)
+void Save_EraseAllData(void)
 {
     u16 i;
     for (i = 0; i < 32; i++)
         EraseFlashSector(i);
 }
 
-void sub_02010DAC(void)
+void Save_ResetSaveCounters(void)
 {
-    gUnknown_3001230 = 0;
-    gUnknown_3001220 = 0;
-    gUnknown_300122C = 0;
+    gSaveCounter = 0;
+    gFirstSaveSector = 0;
+    gDamagedSaveSectors = 0;
 }
 
-bool32 sub_02010DC8(u8 action, u8 flagno)
+bool32 SetSectorDamagedStatus(u8 op, u8 sectorNum)
 {
-    bool32 result = FALSE;
-    switch (action)
+    bool32 retVal = FALSE;
+
+    switch (op)
     {
-        case 0:
-            gUnknown_300122C |= (1 << flagno);
+        case SECTOR_DAMAGED:
+            gDamagedSaveSectors |= (1 << sectorNum);
             break;
-        case 1:
-            gUnknown_300122C &= ~(1 << flagno);
+        case SECTOR_OK:
+            gDamagedSaveSectors &= ~(1 << sectorNum);
             break;
-        case 2:
-            if (gUnknown_300122C & (1 << flagno))
-                result = TRUE;
+        case SECTOR_CHECK: // unused
+            if (gDamagedSaveSectors & (1 << sectorNum))
+                retVal = TRUE;
             break;
     }
-    return result;
+
+    return retVal;
 }
 
-u8 sub_02010E2C(u16 a0, const struct SaveBlockChunk * a1)
+u8 WriteSaveBlockChunks(u16 chunkId, const struct SaveBlockChunk *chunks)
 {
-    u8 result;
+    u32 retVal;
     u16 i;
-    gUnknown_3001234 = &UnkFlashData;
-    if (a0 != 0xFFFF)
+
+    gFastSaveSection = eSaveSection;
+
+    if (chunkId != 0xFFFF)  // write single chunk
     {
-        result = sub_02010ECC(a0, a1);
+        retVal = WriteSingleChunk(chunkId, chunks);
+    }
+    else  // write all chunks
+    {
+        gLastKnownGoodSector = gFirstSaveSector;
+        gPrevSaveCounter = gSaveCounter;
+        gFirstSaveSector++;
+        gFirstSaveSector %= NUM_SECTORS_PER_SAVE_SLOT;
+        gSaveCounter++;
+        retVal = SAVE_STATUS_OK;
+
+        for (i = 0; i < NUM_SECTORS_PER_SAVE_SLOT; i++)
+            WriteSingleChunk(i, chunks);
+
+        // Check for any bad sectors
+        if (gDamagedSaveSectors != 0) // skip the damaged sector.
+        {
+            retVal = SAVE_STATUS_ERROR;
+            gFirstSaveSector = gLastKnownGoodSector;
+            gSaveCounter = gPrevSaveCounter;
+        }
+    }
+
+    return retVal;
+}
+
+u8 WriteSingleChunk(u16 chunkId, const struct SaveBlockChunk * chunks)
+{
+    u16 i;
+    u16 sectorNum;
+    u8 *chunkData;
+    u16 chunkSize;
+
+    // select sector number
+    sectorNum = chunkId + gFirstSaveSector;
+    sectorNum %= NUM_SECTORS_PER_SAVE_SLOT;
+    // select save slot
+    sectorNum += NUM_SECTORS_PER_SAVE_SLOT * (gSaveCounter % 2);
+
+    chunkData = chunks[chunkId].data;
+    chunkSize = chunks[chunkId].size;
+
+    // clear save section.
+    for (i = 0; i < sizeof(struct SaveSector); i++)
+        ((u8 *)gFastSaveSection)[i] = 0;
+
+    gFastSaveSection->id = chunkId;
+    gFastSaveSection->signature = FILE_SIGNATURE;
+    gFastSaveSection->counter = gSaveCounter;
+    for (i = 0; i < chunkSize; i++)
+        gFastSaveSection->data[i] = chunkData[i];
+    gFastSaveSection->checksum = CalculateChecksum(chunkData, chunkSize);
+
+    return TryWriteSector(sectorNum, gFastSaveSection->data);
+}
+
+u8 HandleWriteSectorNBytes(u8 sectorNum, u8 *data, u16 size)
+{
+    u16 i;
+    struct SaveSector *section = eSaveSection;
+
+    for (i = 0; i < sizeof(struct SaveSector); i++)
+        ((char *)section)[i] = 0;
+
+    section->signature = FILE_SIGNATURE;
+    for (i = 0; i < size; i++)
+        section->data[i] = data[i];
+    section->id = CalculateChecksum(data, size); // though this appears to be incorrect, it might be some sector checksum instead of a whole save checksum and only appears to be relevent to HOF data, if used.
+
+    return TryWriteSector(sectorNum, section->data);
+}
+
+u8 TryWriteSector(u8 sectorNum, u8 *data)
+{
+    if (ProgramFlashSectorAndVerify(sectorNum, data) != 0) // is damaged?
+    {
+        SetSectorDamagedStatus(SECTOR_DAMAGED, sectorNum); // set damaged sector bits.
+        return SAVE_STATUS_ERROR;
     }
     else
     {
-        gUnknown_3001228 = gUnknown_3001220;
-        gUnknown_3001224 = gUnknown_3001230;
-        gUnknown_3001220++;
-        gUnknown_3001220 %= 14;
-        gUnknown_3001230++;
-        result = 1;
-        for (i = 0; i < 14; i++)
-            sub_02010ECC(i, a1);
-        if (gUnknown_300122C)
-        {
-            result = 0xFF;
-            gUnknown_3001220 = gUnknown_3001228;
-            gUnknown_3001230 = gUnknown_3001224;
-        }
+        SetSectorDamagedStatus(SECTOR_OK, sectorNum); // unset damaged sector bits. it's safe now.
+        return SAVE_STATUS_OK;
     }
-    return result;
 }
 
-#ifdef NONMATCHING
-u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1)
+u32 RestoreSaveBackupVarsAndIncrement(const struct SaveBlockChunk *chunk) // chunk is unused
 {
-    u16 r3;
-    u8 * r10;
-    u16 r4;
-    u16 r5 = a0 + gUnknown_3001220;
-    r5 %= 14;
-    r5 += 14 * (gUnknown_3001230 & 1);
-    r10 = a1[a0].ptr;
-    r4 = a1[a0].size;
-    for (r3 = 0; r3 < 0x1000; r3++)
-    {
-        gUnknown_3001234->unk_0000[r3] = 0;
-    }
-    gUnknown_3001234->unk_0FF4 = a0;
-    gUnknown_3001234->unk_0FF8 = (struct UnkEwramSubstruct){0x25, 0x20, 0x01, 0x08};
-    gUnknown_3001234->unk_0FFC = gUnknown_3001230;
-    for (r3 = 0; r3 < r4; r3++)
-    {
-        gUnknown_3001234->unk_0000[r3] = r10[r3];
-    }
-    gUnknown_3001234->unk_0FF6 = flash_sector_checksum(r10, r4);
-    return sub_02011034(r5, gUnknown_3001234->unk_0000);
-}
-#else
-NAKED
-u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1)
-{
-    asm_unified("\tpush {r4, r5, r6, r7, lr}\n"
-                "\tmov r7, sl\n"
-                "\tmov r6, sb\n"
-                "\tmov r5, r8\n"
-                "\tpush {r5, r6, r7}\n"
-                "\tadds r4, r1, #0\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r6, r0, #0x10\n"
-                "\tldr r0, =gUnknown_3001220\n"
-                "\tldrh r0, [r0]\n"
-                "\tadds r0, r6, r0\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r5, r0, #0x10\n"
-                "\tadds r0, r5, #0\n"
-                "\tmovs r1, #0xe\n"
-                "\tbl __umodsi3\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r5, r0, #0x10\n"
-                "\tldr r2, =gUnknown_3001230\n"
-                "\tldr r1, [r2]\n"
-                "\tmovs r0, #1\n"
-                "\tands r1, r0\n"
-                "\tlsls r0, r1, #3\n"
-                "\tsubs r0, r0, r1\n"
-                "\tlsls r0, r0, #1\n"
-                "\tadds r0, r5, r0\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r5, r0, #0x10\n"
-                "\tlsls r0, r6, #3\n"
-                "\tadds r0, r0, r4\n"
-                "\tldr r1, [r0]\n"
-                "\tmov sl, r1\n"
-                "\tldrh r4, [r0, #4]\n"
-                "\tmovs r3, #0\n"
-                "\tmov sb, r2\n"
-                "\tldr r2, =gUnknown_3001234\n"
-                "\tmov ip, r2\n"
-                "\tmov r8, ip\n"
-                "\tmovs r2, #0\n"
-                "\tldr r1, =0x00000FFF\n"
-                "_02010F1E:\n"
-                "\tmov r7, r8\n"
-                "\tldr r0, [r7]\n"
-                "\tadds r0, r0, r3\n"
-                "\tstrb r2, [r0]\n"
-                "\tadds r0, r3, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r3, r0, #0x10\n"
-                "\tcmp r3, r1\n"
-                "\tbls _02010F1E\n"
-                "\tmov r0, ip\n"
-                "\tldr r1, [r0]\n"
-                "\tldr r2, =0x00000FF4\n"
-                "\tadds r0, r1, r2\n"
-                "\tstrh r6, [r0]\n"
-                "\tldr r3, =0x00000FF8\n"
-                "\tadds r2, r1, r3\n"
-                "\tldr r0, =0x08012025\n"
-                "\tstr r0, [r2]\n"
-                "\tldr r6, =0x00000FFC\n"
-                "\tadds r1, r1, r6\n"
-                "\tmov r7, sb\n"
-                "\tldr r0, [r7]\n"
-                "\tstr r0, [r1]\n"
-                "\tmovs r3, #0\n"
-                "\tlsls r5, r5, #0x18\n"
-                "\tcmp r3, r4\n"
-                "\tbhs _02010F6C\n"
-                "\tmov r2, ip\n"
-                "_02010F56:\n"
-                "\tldr r1, [r2]\n"
-                "\tadds r1, r1, r3\n"
-                "\tmov r6, sl\n"
-                "\tadds r0, r6, r3\n"
-                "\tldrb r0, [r0]\n"
-                "\tstrb r0, [r1]\n"
-                "\tadds r0, r3, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r3, r0, #0x10\n"
-                "\tcmp r3, r4\n"
-                "\tblo _02010F56\n"
-                "_02010F6C:\n"
-                "\tmov r0, sl\n"
-                "\tadds r1, r4, #0\n"
-                "\tbl flash_sector_checksum\n"
-                "\tldr r1, =gUnknown_3001234\n"
-                "\tldr r1, [r1]\n"
-                "\tldr r7, =0x00000FF6\n"
-                "\tadds r2, r1, r7\n"
-                "\tstrh r0, [r2]\n"
-                "\tlsrs r0, r5, #0x18\n"
-                "\tbl sub_02011034\n"
-                "\tlsls r0, r0, #0x18\n"
-                "\tlsrs r0, r0, #0x18\n"
-                "\tpop {r3, r4, r5}\n"
-                "\tmov r8, r3\n"
-                "\tmov sb, r4\n"
-                "\tmov sl, r5\n"
-                "\tpop {r4, r5, r6, r7}\n"
-                "\tpop {r1}\n"
-                "\tbx r1\n"
-                "\t.pool");
-}
-#endif
-
-#ifdef NONMATCHING
-u8 sub_02010FBC(u8 a0, u8 * a1, u16 a2)
-{
-    u16 r3;
-    struct UnkEwramStruct *r4 = &UnkFlashData;
-    for (r3 = 0; r3 < 0x1000; r3++)
-    {
-        r4->unk_0000[r3] = 0;
-    }
-    r4->unk_0FF8 = (struct UnkEwramSubstruct){0x25, 0x20, 0x01, 0x08};
-    for (r3 = 0; r3 < a2; r3++)
-    {
-        r4->unk_0000[r3] = a1[r3];
-    }
-    r4->unk_0FF4 = flash_sector_checksum(a1, a2);
-    return sub_02011034(a0, r4);
-}
-#else
-NAKED
-void sub_02010FBC(u8 a0, u8 * a1, u16 a2)
-{
-    asm_unified("\tpush {r4, r5, r6, r7, lr}\n"
-                "\tadds r5, r1, #0\n"
-                "\tlsls r0, r0, #0x18\n"
-                "\tlsrs r7, r0, #0x18\n"
-                "\tlsls r2, r2, #0x10\n"
-                "\tlsrs r2, r2, #0x10\n"
-                "\tldr r4, =gUnknown_2020000\n"
-                "\tmovs r3, #0\n"
-                "\tmovs r6, #0\n"
-                "\tldr r1, =0x00000FFF\n"
-                "_02010FD0:\n"
-                "\tadds r0, r4, r3\n"
-                "\tstrb r6, [r0]\n"
-                "\tadds r0, r3, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r3, r0, #0x10\n"
-                "\tcmp r3, r1\n"
-                "\tbls _02010FD0\n"
-                "\tldr r0, =0x00000FF8\n"
-                "\tadds r0, r4, r0\n"
-                "\tldr r1, =0x08012025\n"
-                "\tstr r1, [r0]\n"
-                "\tmovs r3, #0\n"
-                "\tcmp r3, r2\n"
-                "\tbhs _02010FFE\n"
-                "_02010FEC:\n"
-                "\tadds r1, r4, r3\n"
-                "\tadds r0, r5, r3\n"
-                "\tldrb r0, [r0]\n"
-                "\tstrb r0, [r1]\n"
-                "\tadds r0, r3, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r3, r0, #0x10\n"
-                "\tcmp r3, r2\n"
-                "\tblo _02010FEC\n"
-                "_02010FFE:\n"
-                "\tadds r0, r5, #0\n"
-                "\tadds r1, r2, #0\n"
-                "\tbl flash_sector_checksum\n"
-                "\tldr r1, =0x00000FF4\n"
-                "\tadds r1, r4, r1\n"
-                "\tstrh r0, [r1]\n"
-                "\tadds r0, r7, #0\n"
-                "\tadds r1, r4, #0\n"
-                "\tbl sub_02011034\n"
-                "\tlsls r0, r0, #0x18\n"
-                "\tlsrs r0, r0, #0x18\n"
-                "\tpop {r4, r5, r6, r7}\n"
-                "\tpop {r1}\n"
-                "\tbx r1\n"
-                "\t.pool");
-}
-#endif
-
-u8 sub_02011034(u8 a0, u8 * a1)
-{
-    if (ProgramFlashSectorAndVerify(a0, a1))
-    {
-        sub_02010DC8(0, a0);
-        return 0xFF;
-    }
-    sub_02010DC8(1, a0);
-    return 1;
-}
-
-s32 sub_02011060(void)
-{
-    gUnknown_3001234 = &UnkFlashData;
-    gUnknown_3001228 = gUnknown_3001220;
-    gUnknown_3001224 = gUnknown_3001230;
-    gUnknown_3001220++;
-    gUnknown_3001220 %= 14;
-    gUnknown_3001230++;
+    gFastSaveSection = eSaveSection;
+    gLastKnownGoodSector = gFirstSaveSector;
+    gPrevSaveCounter = gSaveCounter;
+    gFirstSaveSector++;
+    gFirstSaveSector %= NUM_SECTORS_PER_SAVE_SLOT;
+    gSaveCounter++;
     gUnknown_3001238 = 0;
-    gUnknown_300122C = 0;
+    gDamagedSaveSectors = 0;
     return 0;
 }
 
-s32 sub_020110BC(void)
+u32 RestoreSaveBackupVars(const struct SaveBlockChunk *chunk)
 {
-    gUnknown_3001234 = &UnkFlashData;
-    gUnknown_3001228 = gUnknown_3001220;
-    gUnknown_3001224 = gUnknown_3001230;
+    gFastSaveSection = eSaveSection;
+    gLastKnownGoodSector = gFirstSaveSector;
+    gPrevSaveCounter = gSaveCounter;
     gUnknown_3001238 = 0;
-    gUnknown_300122C = 0;
+    gDamagedSaveSectors = 0;
     return 0;
 }
 
-u8 sub_02011000(u16 a0, const struct SaveBlockChunk * a1)
+u8 sub_02011000(u16 a1, const struct SaveBlockChunk * chunk)
 {
-    u8 response;
-    if (gUnknown_3001238 < a0 - 1)
+    u8 retVal;
+
+    if (gUnknown_3001238 < a1 - 1)
     {
-        response = 1;
-        sub_02010ECC(gUnknown_3001238, a1);
+        retVal = SAVE_STATUS_OK;
+        WriteSingleChunk(gUnknown_3001238, chunk);
         gUnknown_3001238++;
-        if (gUnknown_300122C != 0)
+        if (gDamagedSaveSectors)
         {
-            response = 0xFF;
-            gUnknown_3001220 = gUnknown_3001228;
-            gUnknown_3001230 = gUnknown_3001224;
+            retVal = SAVE_STATUS_ERROR;
+            gFirstSaveSector = gLastKnownGoodSector;
+            gSaveCounter = gPrevSaveCounter;
         }
     }
     else
-        response = 0xFF;
-    return response;
+    {
+        retVal = SAVE_STATUS_ERROR;
+    }
+
+    return retVal;
 }
 
-u8 sub_02011160(u16 a0, const struct SaveBlockChunk * a1)
+u8 sub_02011160(u16 a1, const struct SaveBlockChunk *chunk)
 {
-    u8 response = 1;
-    sub_020111AC(a0 - 1, a1);
-    if (gUnknown_300122C != 0)
+    u8 retVal = SAVE_STATUS_OK;
+
+    sub_020111AC(a1 - 1, chunk);
+
+    if (gDamagedSaveSectors)
     {
-        response = 0xFF;
-        gUnknown_3001220 = gUnknown_3001228;
-        gUnknown_3001230 = gUnknown_3001224;
+        retVal = SAVE_STATUS_ERROR;
+        gFirstSaveSector = gLastKnownGoodSector;
+        gSaveCounter = gPrevSaveCounter;
     }
-    return response;
+    return retVal;
 }
 
-#ifdef NONMATCHING
-u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1)
+u8 sub_020111AC(u16 chunkId, const struct SaveBlockChunk *chunks)
 {
-    u8 * r10;
-    u16 r3;
-    u16 r4;
-    u8 result;
-    u16 r5 = a0 + gUnknown_3001220;
-    r5 %= 14;
-    r5 += 14 * (gUnknown_3001230 & 1);
-    r10 = a1[a0].ptr;
-    r3 = a1[a0].size;
-    for (r4 = 0; r4 < 0x1000; r4++)
+    u16 i;
+    u16 sector;
+    u8 *data;
+    u16 size;
+    u8 status;
+
+    // select sector number
+    sector = chunkId + gFirstSaveSector;
+    sector %= NUM_SECTORS_PER_SAVE_SLOT;
+    // select save slot
+    sector += NUM_SECTORS_PER_SAVE_SLOT * (gSaveCounter % 2);
+
+    data = chunks[chunkId].data;
+    size = chunks[chunkId].size;
+
+    // clear temp save section.
+    for (i = 0; i < sizeof(struct SaveSector); i++)
+        ((char *)gFastSaveSection)[i] = 0;
+
+    gFastSaveSection->id = chunkId;
+    gFastSaveSection->signature = FILE_SIGNATURE;
+    gFastSaveSection->counter = gSaveCounter;
+
+    // set temp section's data.
+    for (i = 0; i < size; i++)
+        gFastSaveSection->data[i] = data[i];
+
+    // calculate checksum.
+    gFastSaveSection->checksum = CalculateChecksum(data, size);
+
+    EraseFlashSector(sector);
+
+    status = SAVE_STATUS_OK;
+
+    for (i = 0; i < sizeof(struct UnkSaveSection); i++)
     {
-        gUnknown_3001234->unk_0000[r4] = 0;
-    }
-    gUnknown_3001234->unk_0FF4 = a0;
-    gUnknown_3001234->unk_0FF8 = (struct UnkEwramSubstruct){0x25, 0x20, 0x01, 0x08};
-    gUnknown_3001234->unk_0FFC = gUnknown_3001230;
-    for (r4 = 0; r4 < r3; r4++)
-    {
-        gUnknown_3001234->unk_0000[r4] = r10[r4];
-    }
-    gUnknown_3001234->unk_0FF6 = flash_sector_checksum(r10, r3);
-    EraseFlashSector(r5);
-    result = 1;
-    for (r4 = 0; r4 < 0xFF8; r4++)
-    {
-        if (ProgramFlashByte(r5, r4, gUnknown_3001234->unk_0000[r4]))
+        if (ProgramFlashByte(sector, i, gFastSaveSection->data[i]))
         {
-            result = 0xFF;
+            status = SAVE_STATUS_ERROR;
             break;
         }
     }
-    if (result == 0xFF)
-    {
-        sub_02010DC8(0, r5);
-        return 0xFF;
-    }
-    result = 1;
-    for (r4 = 0; r4 < 7; r4++)
-    {
-        if (ProgramFlashByte(r5, r4 + 0xFF9, (&gUnknown_3001234->unk_0FF8.unk1)[r4]))
-        {
-            result = 0xFF;
-            break;
-        }
-    }
-    if (result == 0xFF)
-    {
-        sub_02010DC8(0, r5);
-        return 0xFF;
-    }
-    sub_02010DC8(1, r5);
-    return 1;
-}
-#else
-NAKED
-u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1)
-{
-    asm_unified("\tpush {r4, r5, r6, r7, lr}\n"
-                "\tmov r7, sl\n"
-                "\tmov r6, sb\n"
-                "\tmov r5, r8\n"
-                "\tpush {r5, r6, r7}\n"
-                "\tadds r4, r1, #0\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r6, r0, #0x10\n"
-                "\tldr r0, =gUnknown_3001220\n"
-                "\tldrh r0, [r0]\n"
-                "\tadds r0, r6, r0\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r5, r0, #0x10\n"
-                "\tadds r0, r5, #0\n"
-                "\tmovs r1, #0xe\n"
-                "\tbl __umodsi3\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r5, r0, #0x10\n"
-                "\tldr r2, =gUnknown_3001230\n"
-                "\tldr r1, [r2]\n"
-                "\tmovs r0, #1\n"
-                "\tands r1, r0\n"
-                "\tlsls r0, r1, #3\n"
-                "\tsubs r0, r0, r1\n"
-                "\tlsls r0, r0, #1\n"
-                "\tadds r0, r5, r0\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r5, r0, #0x10\n"
-                "\tlsls r0, r6, #3\n"
-                "\tadds r0, r0, r4\n"
-                "\tldr r1, [r0]\n"
-                "\tmov sl, r1\n"
-                "\tldrh r3, [r0, #4]\n"
-                "\tmovs r4, #0\n"
-                "\tmov sb, r2\n"
-                "\tldr r2, =gUnknown_3001234\n"
-                "\tmov ip, r2\n"
-                "\tmov r8, ip\n"
-                "\tmovs r2, #0\n"
-                "\tldr r1, =0x00000FFF\n"
-                "_020111FE:\n"
-                "\tmov r7, r8\n"
-                "\tldr r0, [r7]\n"
-                "\tadds r0, r0, r4\n"
-                "\tstrb r2, [r0]\n"
-                "\tadds r0, r4, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r4, r0, #0x10\n"
-                "\tcmp r4, r1\n"
-                "\tbls _020111FE\n"
-                "\tmov r0, ip\n"
-                "\tldr r1, [r0]\n"
-                "\tldr r2, =0x00000FF4\n"
-                "\tadds r0, r1, r2\n"
-                "\tstrh r6, [r0]\n"
-                "\tldr r6, =0x00000FF8\n"
-                "\tadds r2, r1, r6\n"
-                "\tldr r0, =0x08012025\n"
-                "\tstr r0, [r2]\n"
-                "\tldr r7, =0x00000FFC\n"
-                "\tadds r1, r1, r7\n"
-                "\tmov r2, sb\n"
-                "\tldr r0, [r2]\n"
-                "\tstr r0, [r1]\n"
-                "\tmovs r4, #0\n"
-                "\tlsls r6, r5, #0x18\n"
-                "\tmov r8, r6\n"
-                "\tcmp r4, r3\n"
-                "\tbhs _0201124E\n"
-                "\tmov r2, ip\n"
-                "_02011238:\n"
-                "\tldr r1, [r2]\n"
-                "\tadds r1, r1, r4\n"
-                "\tmov r7, sl\n"
-                "\tadds r0, r7, r4\n"
-                "\tldrb r0, [r0]\n"
-                "\tstrb r0, [r1]\n"
-                "\tadds r0, r4, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r4, r0, #0x10\n"
-                "\tcmp r4, r3\n"
-                "\tblo _02011238\n"
-                "_0201124E:\n"
-                "\tmov r0, sl\n"
-                "\tadds r1, r3, #0\n"
-                "\tbl flash_sector_checksum\n"
-                "\tldr r1, =gUnknown_3001234\n"
-                "\tldr r1, [r1]\n"
-                "\tldr r2, =0x00000FF6\n"
-                "\tadds r1, r1, r2\n"
-                "\tstrh r0, [r1]\n"
-                "\tldr r0, =EraseFlashSector\n"
-                "\tldr r1, [r0]\n"
-                "\tadds r0, r5, #0\n"
-                "\tbl _call_via_r1\n"
-                "\tmovs r6, #1\n"
-                "\tmovs r4, #0\n"
-                "\tldr r7, =0x00000FF7\n"
-                "\tmov sb, r7\n"
-                "\tldr r7, =ProgramFlashByte\n"
-                "\tb _020112AE\n"
-                "\t.pool\n"
-                "_020112A8:\n"
-                "\tadds r0, r4, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r4, r0, #0x10\n"
-                "_020112AE:\n"
-                "\tcmp r4, sb\n"
-                "\tbhi _020112CC\n"
-                "\tldr r0, =gUnknown_3001234\n"
-                "\tldr r0, [r0]\n"
-                "\tadds r0, r0, r4\n"
-                "\tldrb r2, [r0]\n"
-                "\tldr r3, [r7]\n"
-                "\tadds r0, r5, #0\n"
-                "\tadds r1, r4, #0\n"
-                "\tbl _call_via_r3\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tcmp r0, #0\n"
-                "\tbeq _020112A8\n"
-                "\tmovs r6, #0xff\n"
-                "_020112CC:\n"
-                "\tcmp r6, #0xff\n"
-                "\tbne _020112DC\n"
-                "\tmov r0, r8\n"
-                "\tlsrs r1, r0, #0x18\n"
-                "\tb _02011334\n"
-                "\t.pool\n"
-                "_020112DC:\n"
-                "\tmovs r6, #1\n"
-                "\tmovs r4, #0\n"
-                "\tldr r1, =ProgramFlashByte\n"
-                "\tmov sb, r1\n"
-                "\tldr r7, =0x00000FF9\n"
-                "\tb _020112F6\n"
-                "\t.pool\n"
-                "_020112F0:\n"
-                "\tadds r0, r4, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r4, r0, #0x10\n"
-                "_020112F6:\n"
-                "\tcmp r4, #6\n"
-                "\tbhi _02011318\n"
-                "\tadds r1, r4, r7\n"
-                "\tldr r0, =gUnknown_3001234\n"
-                "\tldr r0, [r0]\n"
-                "\tadds r0, r4, r0\n"
-                "\tadds r0, r0, r7\n"
-                "\tldrb r2, [r0]\n"
-                "\tmov r0, sb\n"
-                "\tldr r3, [r0]\n"
-                "\tadds r0, r5, #0\n"
-                "\tbl _call_via_r3\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tcmp r0, #0\n"
-                "\tbeq _020112F0\n"
-                "\tmovs r6, #0xff\n"
-                "_02011318:\n"
-                "\tcmp r6, #0xff\n"
-                "\tbeq _02011330\n"
-                "\tmov r2, r8\n"
-                "\tlsrs r1, r2, #0x18\n"
-                "\tmovs r0, #1\n"
-                "\tbl sub_02010DC8\n"
-                "\tmovs r0, #1\n"
-                "\tb _0201133C\n"
-                "\t.pool\n"
-                "_02011330:\n"
-                "\tmov r6, r8\n"
-                "\tlsrs r1, r6, #0x18\n"
-                "_02011334:\n"
-                "\tmovs r0, #0\n"
-                "\tbl sub_02010DC8\n"
-                "\tmovs r0, #0xff\n"
-                "_0201133C:\n"
-                "\tpop {r3, r4, r5}\n"
-                "\tmov r8, r3\n"
-                "\tmov sb, r4\n"
-                "\tmov sl, r5\n"
-                "\tpop {r4, r5, r6, r7}\n"
-                "\tpop {r1}\n"
-                "\tbx r1");
-}
-#endif
 
-u8 sub_0201134C(u16 a0)
-{
-    u16 r4 = a0 + gUnknown_3001220 - 1;
-    r4 %= 14;
-    r4 += 14 * (gUnknown_3001230 & 1);
-    if (ProgramFlashByte(r4, 0xFF8, gUnknown_3001234->unk_0FF8.unk0))
+    if (status == SAVE_STATUS_ERROR)
     {
-        sub_02010DC8(0, r4);
-        gUnknown_3001220 = gUnknown_3001228;
-        gUnknown_3001230 = gUnknown_3001224;
-        return 0xFF;
-    }
-    sub_02010DC8(1, r4);
-    return 1;
-}
-
-u8 sub_020113E4(u16 a0)
-{
-    u16 r4 = a0 + gUnknown_3001220 - 1;
-    r4 %= 14;
-    r4 += 14 * (gUnknown_3001230 & 1);
-    if (ProgramFlashByte(r4, 0xFF8, 0x25))
-    {
-        sub_02010DC8(0, r4);
-        gUnknown_3001220 = gUnknown_3001228;
-        gUnknown_3001230 = gUnknown_3001224;
-        return 0xFF;
-    }
-    sub_02010DC8(1, r4);
-    return 1;
-}
-
-u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1)
-{
-    u8 result;
-    gUnknown_3001234 = &UnkFlashData;
-    if (a0 != 0xFFFF)
-        result = 0xFF;
-    else
-    {
-        result = sub_02011568(a1);
-        sub_020114B0(a0, a1);
-    }
-    return result;
-}
-
-u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1)
-{
-    u16 r7 = 14 * (gUnknown_3001230 & 1);
-    u16 r5;
-    u16 r3;
-    u16 r1;
-    for (r5 = 0; r5 < 14; r5++)
-    {
-        flash_sector_read(r5 + r7, gUnknown_3001234->unk_0000);
-        r1 = gUnknown_3001234->unk_0FF4;
-        if (r1 == 0)
-            gUnknown_3001220 = r5;
-        r3 = flash_sector_checksum(gUnknown_3001234->unk_0000, a1[r1].size);
-        if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025 && gUnknown_3001234->unk_0FF6 == r3)
-        {
-            memcpy(a1[r1].ptr, gUnknown_3001234->unk_0000, a1[r1].size);
-        }
-    }
-    return 1;
-}
-
-u8 sub_02011568(const struct SaveBlockChunk * a1)
-{
-    u16 r4;
-    u32 sp0;
-    u32 r1;
-    u32 r8 = 0;
-    u32 r9 = 0;
-    u32 r6 = 0;
-    u16 r2;
-    bool32 r5 = FALSE;
-    for (r4 = 0; r4 < 14; r4++)
-    {
-        flash_sector_read(r4, gUnknown_3001234->unk_0000);
-        if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025)
-        {
-            r5 = TRUE;
-            r2 = flash_sector_checksum(gUnknown_3001234->unk_0000, a1[gUnknown_3001234->unk_0FF4].size);
-            if (gUnknown_3001234->unk_0FF6 == r2)
-            {
-                r8 = gUnknown_3001234->unk_0FFC;
-                r6 |= (1 << gUnknown_3001234->unk_0FF4);
-            }
-        }
-    }
-    if (r5)
-    {
-        sp0 = r6 == 0x3FFF ? 1 : 0xFF;
+        SetSectorDamagedStatus(SECTOR_DAMAGED, sector);
+        return SAVE_STATUS_ERROR;
     }
     else
     {
-        sp0 = 0;
-    }
+        status = SAVE_STATUS_OK;
 
-    r6 = 0;
-    r5 = 0;
-    for (r4 = 0; r4 < 14; r4++)
-    {
-        flash_sector_read(r4 + 14, gUnknown_3001234->unk_0000);
-        if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025)
+        for (i = 0; i < 7; i++)
         {
-            r5 = TRUE;
-            r2 = flash_sector_checksum(gUnknown_3001234->unk_0000, a1[gUnknown_3001234->unk_0FF4].size);
-            if (gUnknown_3001234->unk_0FF6 == r2)
+            if (ProgramFlashByte(sector, 0xFF9 + i, ((u8 *)gFastSaveSection)[0xFF9 + i]))
             {
-                r9 = gUnknown_3001234->unk_0FFC;
-                r6 |= (1 << gUnknown_3001234->unk_0FF4);
+                status = SAVE_STATUS_ERROR;
+                break;
             }
         }
-    }
-    if (r5)
-    {
-        r1 = r6 == 0x3FFF ? 1 : 0xFF;
-    }
-    else
-    {
-        r1 = 0;
-    }
 
-    if (sp0 == 1)
-    {
-        if (r1 == 1)
+        if (status == SAVE_STATUS_ERROR)
         {
-            if ((r8 == 0xFFFFFFFF && r9 == 0) || (r8 == 0 && r9 == 0xFFFFFFFF))
-            {
-                if (r8 + 1 < r9 + 1)
-                    gUnknown_3001230 = r9;
-                else
-                    gUnknown_3001230 = r8;
-            }
-            else
-            {
-                if (r8 < r9)
-                    gUnknown_3001230 = r9;
-                else
-                    gUnknown_3001230 = r8;
-            }
-            return 1;
+            SetSectorDamagedStatus(SECTOR_DAMAGED, sector);
+            return SAVE_STATUS_ERROR;
         }
         else
         {
-            gUnknown_3001230 = r8;
-            if (r1 == 0xFF)
-                return 0xFF;
+            SetSectorDamagedStatus(SECTOR_OK, sector);
+            return SAVE_STATUS_OK;
         }
-        return 1;
+    }
+}
+
+u8 WriteSomeFlashByteToPrevSector(u16 a1, const struct SaveBlockChunk *chunk)
+{
+    u16 sector;
+
+    // select sector number
+    sector = a1 + gFirstSaveSector - 1;
+    sector %= NUM_SECTORS_PER_SAVE_SLOT;
+    // select save slot
+    sector += NUM_SECTORS_PER_SAVE_SLOT * (gSaveCounter % 2);
+
+    if (ProgramFlashByte(sector, sizeof(struct UnkSaveSection), ((u8 *)gFastSaveSection)[sizeof(struct UnkSaveSection)]))
+    {
+        // sector is damaged, so enable the bit in gDamagedSaveSectors and restore the last written sector and save counter.
+        SetSectorDamagedStatus(SECTOR_DAMAGED, sector);
+        gFirstSaveSector = gLastKnownGoodSector;
+        gSaveCounter = gPrevSaveCounter;
+        return SAVE_STATUS_ERROR;
     }
     else
     {
-        if (r1 == 1)
-        {
-            gUnknown_3001230 = r9;
-            if (sp0 == 0xFF)
-                return 0xFF;
-            else
-                return 1;
-        }
+        SetSectorDamagedStatus(SECTOR_OK, sector);
+        return SAVE_STATUS_OK;
     }
-    if (sp0 == 0 && r1 == 0)
-    {
-        gUnknown_3001230 = 0;
-        gUnknown_3001220 = 0;
-        return 0;
-    }
-    gUnknown_3001230 = 0;
-    gUnknown_3001220 = 0;
-    return 2;
 }
 
-#ifdef NONMATCHING
-u8 sub_0201177C(u8 a0, u8 * a1, u16 a2)
+u8 WriteSomeFlashByte0x25ToPrevSector(u16 a1, const struct SaveBlockChunk *chunk)
 {
-    u16 r0;
-    struct UnkEwramStruct * r5 = &UnkFlashData;
-    flash_sector_read(a0, r5->unk_0000);
-    if (*(u32 *)&r5->unk_0FF8 == 0x08012025)
-    {
-        r0 = flash_sector_checksum(r5->unk_0000, a2);
-        if (*(u16 *)0x2020FF4 == r0)
-        {
-            memcpy(a1, r5->unk_0000, a2);
-            return 1;
-        }
-        return 2;
-    }
-    return 0;
-}
-#else
-NAKED
-u8 sub_0201177C(u8 a0, u8 * a1, u16 a2)
-{
-    asm_unified("\tpush {r4, r5, r6, lr}\n"
-                "\tadds r6, r1, #0\n"
-                "\tlsls r0, r0, #0x18\n"
-                "\tlsrs r0, r0, #0x18\n"
-                "\tlsls r2, r2, #0x10\n"
-                "\tlsrs r4, r2, #0x10\n"
-                "\tldr r5, =gUnknown_2020000\n"
-                "\tadds r1, r5, #0\n"
-                "\tbl flash_sector_read\n"
-                "\tldr r0, =0x00000FF8\n"
-                "\tadds r0, r5, r0\n"
-                "\tldr r1, [r0]\n"
-                "\tldr r0, =0x08012025\n"
-                "\tcmp r1, r0\n"
-                "\tbne _020117E0\n"
-                "\tadds r0, r5, #0\n"
-                "\tadds r1, r4, #0\n"
-                "\tbl flash_sector_checksum\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r0, r0, #0x10\n"
-                "\tldr r1, =gUnknown_2020000 + 0xFF4\n"
-                "\tldrh r1, [r1]\n"
-                "\tcmp r1, r0\n"
-                "\tbne _020117DC\n"
-                "\tmovs r2, #0\n"
-                "\tcmp r2, r4\n"
-                "\tbhs _020117C8\n"
-                "_020117B6:\n"
-                "\tadds r1, r6, r2\n"
-                "\tadds r0, r5, r2\n"
-                "\tldrb r0, [r0]\n"
-                "\tstrb r0, [r1]\n"
-                "\tadds r0, r2, #1\n"
-                "\tlsls r0, r0, #0x10\n"
-                "\tlsrs r2, r0, #0x10\n"
-                "\tcmp r2, r4\n"
-                "\tblo _020117B6\n"
-                "_020117C8:\n"
-                "\tmovs r0, #1\n"
-                "\tb _020117E2\n"
-                "\t.pool\n"
-                "_020117DC:\n"
-                "\tmovs r0, #2\n"
-                "\tb _020117E2\n"
-                "_020117E0:\n"
-                "\tmovs r0, #0\n"
-                "_020117E2:\n"
-                "\tpop {r4, r5, r6}\n"
-                "\tpop {r1}\n"
-                "\tbx r1");
-}
-#endif
+    u16 sector;
 
-u32 flash_sector_read(u8 sectorNum, u8 * dest)
+    sector = a1 + gFirstSaveSector - 1;
+    sector %= NUM_SECTORS_PER_SAVE_SLOT;
+    sector += NUM_SECTORS_PER_SAVE_SLOT * (gSaveCounter % 2);
+
+    if (ProgramFlashByte(sector, sizeof(struct UnkSaveSection), 0x25))
+    {
+        // sector is damaged, so enable the bit in gDamagedSaveSectors and restore the last written sector and save counter.
+        SetSectorDamagedStatus(SECTOR_DAMAGED, sector);
+        gFirstSaveSector = gLastKnownGoodSector;
+        gSaveCounter = gPrevSaveCounter;
+        return SAVE_STATUS_ERROR;
+    }
+    else
+    {
+        SetSectorDamagedStatus(SECTOR_OK, sector);
+        return SAVE_STATUS_OK;
+    }
+}
+
+u8 sub_02011470(u16 a1, const struct SaveBlockChunk *chunk)
 {
-    ReadFlash(sectorNum, 0, dest, 0x1000);
+    u8 retVal;
+    gFastSaveSection = eSaveSection;
+    if (a1 != 0xFFFF)
+    {
+        retVal = SAVE_STATUS_ERROR;
+    }
+    else
+    {
+        retVal = GetSaveValidStatus(chunk);
+        sub_020114B0(0xFFFF, chunk);
+    }
+
+    return retVal;
+}
+
+u8 sub_020114B0(u16 a1, const struct SaveBlockChunk *chunks)
+{
+    u16 i;
+    u16 checksum;
+    u16 sector = NUM_SECTORS_PER_SAVE_SLOT * (gSaveCounter % 2);
+    u16 id;
+
+    for (i = 0; i < NUM_SECTORS_PER_SAVE_SLOT; i++)
+    {
+        DoReadFlashWholeSection(i + sector, gFastSaveSection);
+        id = gFastSaveSection->id;
+        if (id == 0)
+            gFirstSaveSector = i;
+        checksum = CalculateChecksum(gFastSaveSection->data, chunks[id].size);
+        if (gFastSaveSection->signature == FILE_SIGNATURE
+            && gFastSaveSection->checksum == checksum)
+        {
+            u16 j;
+            for (j = 0; j < chunks[id].size; j++)
+                chunks[id].data[j] = gFastSaveSection->data[j];
+        }
+    }
+
     return 1;
 }
 
-u16 flash_sector_checksum(const void * src, u16 size)
+u8 GetSaveValidStatus(const struct SaveBlockChunk *chunks)
 {
-    u32 chksum = 0;
-    u16 r3;
-    for (r3 = 0; r3 < size / sizeof(u32); r3++)
-    {
-        chksum += *((const u32 *)src);
-        src += sizeof(u32);
+    u16 sector;
+    bool8 signatureValid;
+    u16 checksum;
+    u32 slot1saveCounter = 0;
+    u32 slot2saveCounter = 0;
+    u8 slot1Status;
+    u8 slot2Status;
+    u32 validSectors;
+    const u32 ALL_SECTORS = (1 << NUM_SECTORS_PER_SAVE_SLOT) - 1;  // bitmask of all saveblock sectors
 
+    // check save slot 1.
+    validSectors = 0;
+    signatureValid = FALSE;
+    for (sector = 0; sector < NUM_SECTORS_PER_SAVE_SLOT; sector++)
+    {
+        DoReadFlashWholeSection(sector, gFastSaveSection);
+        if (gFastSaveSection->signature == FILE_SIGNATURE)
+        {
+            signatureValid = TRUE;
+            checksum = CalculateChecksum(gFastSaveSection->data, chunks[gFastSaveSection->id].size);
+            if (gFastSaveSection->checksum == checksum)
+            {
+                slot1saveCounter = gFastSaveSection->counter;
+                validSectors |= 1 << gFastSaveSection->id;
+            }
+        }
     }
-    return (chksum >> 16) + chksum;
+
+    if (signatureValid)
+    {
+        if (validSectors == ALL_SECTORS)
+            slot1Status = SAVE_STATUS_OK;
+        else
+            slot1Status = SAVE_STATUS_ERROR;
+    }
+    else
+    {
+        slot1Status = SAVE_STATUS_EMPTY;
+    }
+
+    // check save slot 2.
+    validSectors = 0;
+    signatureValid = FALSE;
+    for (sector = 0; sector < NUM_SECTORS_PER_SAVE_SLOT; sector++)
+    {
+        DoReadFlashWholeSection(NUM_SECTORS_PER_SAVE_SLOT + sector, gFastSaveSection);
+        if (gFastSaveSection->signature == FILE_SIGNATURE)
+        {
+            signatureValid = TRUE;
+            checksum = CalculateChecksum(gFastSaveSection->data, chunks[gFastSaveSection->id].size);
+            if (gFastSaveSection->checksum == checksum)
+            {
+                slot2saveCounter = gFastSaveSection->counter;
+                validSectors |= 1 << gFastSaveSection->id;
+            }
+        }
+    }
+
+    if (signatureValid)
+    {
+        if (validSectors == ALL_SECTORS)
+            slot2Status = SAVE_STATUS_OK;
+        else
+            slot2Status = SAVE_STATUS_ERROR;
+    }
+    else
+    {
+        slot2Status = SAVE_STATUS_EMPTY;
+    }
+
+    if (slot1Status == SAVE_STATUS_OK && slot2Status == SAVE_STATUS_OK)
+    {
+        // Choose counter of the most recent save file
+        if ((slot1saveCounter == -1 && slot2saveCounter == 0) || (slot1saveCounter == 0 && slot2saveCounter == -1))
+        {
+            if ((unsigned)(slot1saveCounter + 1) < (unsigned)(slot2saveCounter + 1))
+                gSaveCounter = slot2saveCounter;
+            else
+                gSaveCounter = slot1saveCounter;
+        }
+        else
+        {
+            if (slot1saveCounter < slot2saveCounter)
+                gSaveCounter = slot2saveCounter;
+            else
+                gSaveCounter = slot1saveCounter;
+        }
+        return SAVE_STATUS_OK;
+    }
+
+    if (slot1Status == SAVE_STATUS_OK)
+    {
+        gSaveCounter = slot1saveCounter;
+        if (slot2Status == SAVE_STATUS_ERROR)
+            return SAVE_STATUS_ERROR;
+        else
+            return SAVE_STATUS_OK;
+    }
+
+    if (slot2Status == SAVE_STATUS_OK)
+    {
+        gSaveCounter = slot2saveCounter;
+        if (slot1Status == SAVE_STATUS_ERROR)
+            return SAVE_STATUS_ERROR;
+        else
+            return SAVE_STATUS_OK;
+    }
+
+    if (slot1Status == SAVE_STATUS_EMPTY && slot2Status == SAVE_STATUS_EMPTY)
+    {
+        gSaveCounter = 0;
+        gFirstSaveSector = 0;
+        return SAVE_STATUS_EMPTY;
+    }
+
+    gSaveCounter = 0;
+    gFirstSaveSector = 0;
+    return 2;
+}
+
+u8 ReadSomeUnknownSectorAndVerify(u8 sector, u8 *data, u16 size)
+{
+    u16 i;
+    struct SaveSector *section = eSaveSection;
+
+    DoReadFlashWholeSection(sector, section);
+    if (section->signature == FILE_SIGNATURE)
+    {
+        u16 checksum = CalculateChecksum(section->data, size);
+        if (section->id == checksum)
+        {
+            for (i = 0; i < size; i++)
+                data[i] = section->data[i];
+            return SAVE_STATUS_OK;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+    else
+    {
+        return SAVE_STATUS_EMPTY;
+    }
+}
+
+u32 DoReadFlashWholeSection(u8 sector, struct SaveSector *section)
+{
+    ReadFlash(sector, 0, section->data, sizeof(struct SaveSector));
+    return 1;
+}
+
+u16 CalculateChecksum(const void *data, u16 size)
+{
+    u16 i;
+    u32 checksum = 0;
+
+    for (i = 0; i < (size / 4); i++)
+    {
+        checksum += *((u32 *)data);
+        data += sizeof(u32);
+    }
+
+    return ((checksum >> 16) + checksum);
 }
 
 void sub_0201182C()
@@ -1054,9 +729,9 @@ u16 * get_var_addr(u16 a0)
 bool32 sub_02011864(void)
 {
     u8 sp0;
-    u16 * ptr = get_var_addr(VAR_PACIFIDLOG_TM_RECEIVED_DAY);
+    u16 * data = get_var_addr(VAR_PACIFIDLOG_TM_RECEIVED_DAY);
     sub_020109A8(&sp0);
-    if (*ptr <= gUnknown_3001218.days)
+    if (*data <= gUnknown_3001218.days)
         return TRUE;
     else
         return FALSE;

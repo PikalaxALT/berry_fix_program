@@ -3,6 +3,13 @@
 
 #include <gba/gba.h>
 
+enum
+{
+    SECTOR_DAMAGED,
+    SECTOR_OK,
+    SECTOR_CHECK, // unused
+};
+
 struct UnkEwramSubstruct
 {
     u8 unk0;
@@ -11,14 +18,21 @@ struct UnkEwramSubstruct
     u8 unk3;
 };
 
-struct UnkEwramStruct
+struct SaveSector
 {
-    u8 unk_0000[0xff4];
-    u16 unk_0FF4;
-    u16 unk_0FF6;
-    struct UnkEwramSubstruct unk_0FF8;
-    u32 unk_0FFC;
-};
+    u8 data[0xFF4];
+    u16 id;
+    u16 checksum;
+    u32 signature;
+    u32 counter;
+}; // size is 0x1000
+
+// headless save section?
+struct UnkSaveSection
+{
+    u8 data[0xFF4];
+    u32 signature;
+}; // size is 0xFF8
 
 #define memcpy(dest, src, size) ({              \
     u16 i;                                      \
@@ -26,7 +40,21 @@ struct UnkEwramStruct
         ((u8 *)dest)[i] = ((const u8 *)src)[i]; \
 })
 
-#define UnkFlashData (*(struct UnkEwramStruct *)gUnknown_2020000)
+#define memset(dest, value, size) ({              \
+    u16 i;                                      \
+    for (i = 0; i < size; i++)                  \
+        ((u8 *)dest)[i] = value; \
+})
+
+#define eSaveSection ((struct SaveSector *)0x2020000)
+
+#define NUM_SECTORS_PER_SAVE_SLOT 14  // Number of sectors occupied by a save slot
+#define FILE_SIGNATURE 0x08012025
+
+#define SAVE_STATUS_EMPTY 0
+#define SAVE_STATUS_OK 1
+#define SAVE_STATUS_NO_FLASH 4
+#define SAVE_STATUS_ERROR 0xFF
 
 bool8 sub_02010C80(u32);
 void msg_load_gfx(void);
