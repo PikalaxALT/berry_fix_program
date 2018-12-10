@@ -1,8 +1,10 @@
 #include <gba/gba.h>
 #include <agb_flash.h>
+#include "constants/vars.h"
 #include "global.h"
 #include "main.h"
 #include "flash.h"
+#include "rtc.h"
 
 struct SaveBlockChunk
 {
@@ -18,7 +20,7 @@ u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011568(const struct SaveBlockChunk * a1);
 u8 sub_020117E8(u8 a0, u8 * a1);
-u16 sub_02011800(u8 *, size_t);
+u16 sub_02011800(void *, u16);
 
 u16 gUnknown_3001220;
 u32 gUnknown_3001224;
@@ -213,7 +215,7 @@ u8 sub_02010E2C(u16 a0, const struct SaveBlockChunk * a1)
 {
     u8 result;
     u16 i;
-    gUnknown_3001234 = (struct UnkEwramStruct *)gUnknown_2020000;
+    gUnknown_3001234 = &UnkFlashData;
     if (a0 != 0xFFFF)
     {
         result = sub_02010ECC(a0, a1);
@@ -460,7 +462,7 @@ u8 sub_02011034(u8 a0, u8 * a1)
 
 s32 sub_02011060(void)
 {
-    gUnknown_3001234 = (struct UnkEwramStruct *)gUnknown_2020000;
+    gUnknown_3001234 = &UnkFlashData;
     gUnknown_3001228 = gUnknown_3001220;
     gUnknown_3001224 = gUnknown_3001230;
     gUnknown_3001220++;
@@ -473,7 +475,7 @@ s32 sub_02011060(void)
 
 s32 sub_020110BC(void)
 {
-    gUnknown_3001234 = (struct UnkEwramStruct *)gUnknown_2020000;
+    gUnknown_3001234 = &UnkFlashData;
     gUnknown_3001228 = gUnknown_3001220;
     gUnknown_3001224 = gUnknown_3001230;
     gUnknown_3001238 = 0;
@@ -794,7 +796,7 @@ u8 sub_020113E4(u16 a0)
 u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1)
 {
     u8 result;
-    gUnknown_3001234 = (struct UnkEwramStruct *)gUnknown_2020000;
+    gUnknown_3001234 = &UnkFlashData;
     if (a0 != 0xFFFF)
         result = 0xFF;
     else
@@ -932,4 +934,144 @@ u8 sub_02011568(const struct SaveBlockChunk * a1)
     gUnknown_3001230 = 0;
     gUnknown_3001220 = 0;
     return 2;
+}
+
+#ifdef NONMATCHING
+u8 sub_0201177C(u8 a0, u8 * a1, u16 a2)
+{
+    u16 r0;
+    struct UnkEwramStruct * r5 = &UnkFlashData;
+    sub_020117E8(a0, r5->unk_0000);
+    if (*(u32 *)&r5->unk_0FF8 == 0x08012025)
+    {
+        r0 = sub_02011800(r5->unk_0000, a2);
+        if (*(u16 *)0x2020FF4 == r0)
+        {
+            memcpy(a1, r5->unk_0000, a2);
+            return 1;
+        }
+        return 2;
+    }
+    return 0;
+}
+#else
+NAKED
+u8 sub_0201177C(u8 a0, u8 * a1, u16 a2)
+{
+    asm_unified("\tpush {r4, r5, r6, lr}\n"
+                "\tadds r6, r1, #0\n"
+                "\tlsls r0, r0, #0x18\n"
+                "\tlsrs r0, r0, #0x18\n"
+                "\tlsls r2, r2, #0x10\n"
+                "\tlsrs r4, r2, #0x10\n"
+                "\tldr r5, =gUnknown_2020000\n"
+                "\tadds r1, r5, #0\n"
+                "\tbl sub_020117E8\n"
+                "\tldr r0, =0x00000FF8\n"
+                "\tadds r0, r5, r0\n"
+                "\tldr r1, [r0]\n"
+                "\tldr r0, =0x08012025\n"
+                "\tcmp r1, r0\n"
+                "\tbne _020117E0\n"
+                "\tadds r0, r5, #0\n"
+                "\tadds r1, r4, #0\n"
+                "\tbl sub_02011800\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r0, r0, #0x10\n"
+                "\tldr r1, =gUnknown_2020000 + 0xFF4\n"
+                "\tldrh r1, [r1]\n"
+                "\tcmp r1, r0\n"
+                "\tbne _020117DC\n"
+                "\tmovs r2, #0\n"
+                "\tcmp r2, r4\n"
+                "\tbhs _020117C8\n"
+                "_020117B6:\n"
+                "\tadds r1, r6, r2\n"
+                "\tadds r0, r5, r2\n"
+                "\tldrb r0, [r0]\n"
+                "\tstrb r0, [r1]\n"
+                "\tadds r0, r2, #1\n"
+                "\tlsls r0, r0, #0x10\n"
+                "\tlsrs r2, r0, #0x10\n"
+                "\tcmp r2, r4\n"
+                "\tblo _020117B6\n"
+                "_020117C8:\n"
+                "\tmovs r0, #1\n"
+                "\tb _020117E2\n"
+                "\t.pool\n"
+                "_020117DC:\n"
+                "\tmovs r0, #2\n"
+                "\tb _020117E2\n"
+                "_020117E0:\n"
+                "\tmovs r0, #0\n"
+                "_020117E2:\n"
+                "\tpop {r4, r5, r6}\n"
+                "\tpop {r1}\n"
+                "\tbx r1");
+}
+#endif
+
+u8 sub_020117E8(u8 a0, u8 * a1)
+{
+    ReadFlash(a0, 0, a1, 0x1000);
+    return 1;
+}
+
+u16 sub_02011800(void * a0, u16 a1)
+{
+    u32 r2 = 0;
+    u16 r3;
+    for (r3 = 0; r3 < a1 / sizeof(u32); r3++)
+    {
+        r2 += *((u32 *)a0);
+        a0 += sizeof(u32);
+
+    }
+    return (r2 >> 16) + r2;
+}
+
+void sub_0201182C()
+{
+}
+
+void sub_02011830()
+{
+}
+
+void sub_02011834()
+{
+}
+
+u16 * sub_02011838(u16 a0)
+{
+    if (a0 < 0x4000)
+        return NULL;
+    if (a0 < 0x8000)
+        return &gSaveBlock1.vars[a0 - 0x4000];
+    return NULL;
+}
+
+bool32 sub_02011864(void)
+{
+    u8 sp0;
+    u16 * ptr = sub_02011838(VAR_PACIFIDLOG_TM_RECEIVED_DAY);
+    sub_020109A8(&sp0);
+    if (*ptr <= gUnknown_3001218.days)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+bool32 sub_0201189C(void)
+{
+    u8 sp0;
+    if (sub_02011864() == TRUE)
+        return TRUE;
+    sub_020109A8(&sp0);
+    if (gUnknown_3001218.days < 0)
+        return FALSE;
+    *sub_02011838(VAR_PACIFIDLOG_TM_RECEIVED_DAY) = 1;
+    if (sub_02010C60(0) != TRUE)
+        return FALSE;
+    return TRUE;
 }

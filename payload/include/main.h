@@ -13,8 +13,7 @@ extern u32 gUnknown_30011A0;
 extern u32 gUnknown_3001204;
 extern u32 gGameVersion;
 
-extern u8 gUnknown_2020000[0x1BD0];
-extern u8 gUnknown_2021BD0[0x6430];
+extern u8 gUnknown_2020000[0x8000];
 
 extern const IntrFunc gIntrFuncPointers[];
 
