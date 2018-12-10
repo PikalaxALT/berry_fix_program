@@ -20,6 +20,12 @@ struct UnkEwramStruct
     u32 unk_0FFC;
 };
 
+#define memcpy(dest, src, size) ({              \
+    u16 i;                                      \
+    for (i = 0; i < size; i++)                  \
+        ((u8 *)dest)[i] = ((const u8 *)src)[i]; \
+})
+
 #define UnkFlashData (*(struct UnkEwramStruct *)gUnknown_2020000)
 
 bool8 sub_02010C80(u32);

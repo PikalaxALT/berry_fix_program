@@ -15,6 +15,9 @@ u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011034(u8, u8 *);
 u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
+u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1);
+u8 sub_02011568(const struct SaveBlockChunk * a1);
+u8 sub_020117E8(u8 a0, u8 * a1);
 u16 sub_02011800(u8 *, size_t);
 
 u16 gUnknown_3001220;
@@ -755,3 +758,70 @@ u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1)
                 "\tbx r1");
 }
 #endif
+
+u8 sub_0201134C(u16 a0)
+{
+    u16 r4 = a0 + gUnknown_3001220 - 1;
+    r4 %= 14;
+    r4 += 14 * (gUnknown_3001230 & 1);
+    if (ProgramFlashByte(r4, 0xFF8, gUnknown_3001234->unk_0FF8.unk0))
+    {
+        sub_02010DC8(0, r4);
+        gUnknown_3001220 = gUnknown_3001228;
+        gUnknown_3001230 = gUnknown_3001224;
+        return 0xFF;
+    }
+    sub_02010DC8(1, r4);
+    return 1;
+}
+
+u8 sub_020113E4(u16 a0)
+{
+    u16 r4 = a0 + gUnknown_3001220 - 1;
+    r4 %= 14;
+    r4 += 14 * (gUnknown_3001230 & 1);
+    if (ProgramFlashByte(r4, 0xFF8, 0x25))
+    {
+        sub_02010DC8(0, r4);
+        gUnknown_3001220 = gUnknown_3001228;
+        gUnknown_3001230 = gUnknown_3001224;
+        return 0xFF;
+    }
+    sub_02010DC8(1, r4);
+    return 1;
+}
+
+u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1)
+{
+    u8 result;
+    gUnknown_3001234 = (struct UnkEwramStruct *)gUnknown_2020000;
+    if (a0 != 0xFFFF)
+        result = 0xFF;
+    else
+    {
+        result = sub_02011568(a1);
+        sub_020114B0(a0, a1);
+    }
+    return result;
+}
+
+u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1)
+{
+    u16 r7 = 14 * (gUnknown_3001230 & 1);
+    u16 r5;
+    u16 r3;
+    u16 r1;
+    for (r5 = 0; r5 < 14; r5++)
+    {
+        sub_020117E8(r5 + r7, gUnknown_3001234->unk_0000);
+        r1 = gUnknown_3001234->unk_0FF4;
+        if (r1 == 0)
+            gUnknown_3001220 = r5;
+        r3 = sub_02011800(gUnknown_3001234->unk_0000, a1[r1].size);
+        if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025 && gUnknown_3001234->unk_0FF6 == r3)
+        {
+            memcpy(a1[r1].ptr, gUnknown_3001234->unk_0000, a1[r1].size);
+        }
+    }
+    return 1;
+}
