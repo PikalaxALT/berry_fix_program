@@ -4,8 +4,8 @@
 #include "rtc.h"
 #include "flash.h"
 
-BSS_DATA s32 gUnknown_3001000;
-BSS_DATA s32 gFiller_3001004;
+static s32 gUnknown_3001000;
+static s32 gFiller_3001004;
 IntrFunc gIntrTable[16];
 u16 gHeldKeys;
 u16 gNewKeys;

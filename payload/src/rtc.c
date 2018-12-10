@@ -6,14 +6,14 @@
 struct Time gUnknown_3001210;
 struct Time gUnknown_3001218;
 
-BSS_DATA u16 gUnknown_3001008;
-BSS_DATA u32 filler_300100C;
-BSS_DATA struct SiiRtcInfo gUnknown_3001010;
-BSS_DATA u8 gUnknown_300101C;
-BSS_DATA u16 gUnknown_300101E;
-BSS_DATA struct SiiRtcInfo gUnknown_3001020;
+static u16 sRtcProbeStatus;
+static u32 filler_300100C;
+static struct SiiRtcInfo sRtcInfoBuffer;
+static u8 sRtcProbeCode;
+static u16 sImeBak;
+static struct SiiRtcInfo sRtcInfoWork;
 
-const struct SiiRtcInfo gUnknown_2012E60 = {
+const struct SiiRtcInfo sDefaultRTC = {
     .year = 0, // 2000
     .month = 1, // January
     .day = 1, // 01
@@ -40,19 +40,19 @@ const s32 sDaysPerMonth[] = {
     31
 };
 
-void sub_0201074C(struct SiiRtcInfo *);
-u16 sub_02010760(struct SiiRtcInfo *);
+void rtc_get_status_and_datetime(struct SiiRtcInfo *);
+u16 rtc_validate_datetime(struct SiiRtcInfo *);
 
 
-void sub_0201052C(void)
+void rtc_intr_disable(void)
 {
-    gUnknown_300101E = REG_IME;
+    sImeBak = REG_IME;
     REG_IME = 0;
 }
 
-void sub_02010544(void)
+void rtc_intr_enable(void)
 {
-    REG_IME = gUnknown_300101E;
+    REG_IME = sImeBak;
 }
 
 s32 bcd_to_hex(u8 a0)
@@ -69,7 +69,7 @@ bool8 is_leap_year(u8 year)
     return FALSE;
 }
 
-u16 sub_020105B8(u8 year, u8 month, u8 day)
+u16 rtc_count_days_parameterized(u8 year, u8 month, u8 day)
 {
     u16 numDays = 0;
     s32 i;
@@ -87,65 +87,65 @@ u16 sub_020105B8(u8 year, u8 month, u8 day)
     return numDays;
 }
 
-u16 sub_02010644(struct SiiRtcInfo *info)
+u16 rtc_count_days_from_info(struct SiiRtcInfo *info)
 {
-    return sub_020105B8(bcd_to_hex(info->year), bcd_to_hex(info->month), bcd_to_hex(info->day));
+    return rtc_count_days_parameterized(bcd_to_hex(info->year), bcd_to_hex(info->month), bcd_to_hex(info->day));
 }
 
 void sub_02010680(void)
 {
-    gUnknown_3001008 = 0;
-    sub_0201052C();
+    sRtcProbeStatus = 0;
+    rtc_intr_disable();
     SiiRtcUnprotect();
-    gUnknown_300101C = SiiRtcProbe();
-    sub_02010544();
-    if ((gUnknown_300101C & 0xF) != 1)
-        gUnknown_3001008 = 1;
+    sRtcProbeCode = SiiRtcProbe();
+    rtc_intr_enable();
+    if ((sRtcProbeCode & 0xF) != 1)
+        sRtcProbeStatus = 1;
     else
     {
-        if (gUnknown_300101C & 0xF0)
-            gUnknown_3001008 = 2;
+        if (sRtcProbeCode & 0xF0)
+            sRtcProbeStatus = 2;
         else
-            gUnknown_3001008 = 0;
-        sub_0201074C(&gUnknown_3001010);
-        gUnknown_3001008 = sub_02010760(&gUnknown_3001010);
+            sRtcProbeStatus = 0;
+        rtc_get_status_and_datetime(&sRtcInfoBuffer);
+        sRtcProbeStatus = rtc_validate_datetime(&sRtcInfoBuffer);
     }
 }
 
 u16 sub_020106E0(void)
 {
-    return gUnknown_3001008;
+    return sRtcProbeStatus;
 }
 
 void sub_020106EC(struct SiiRtcInfo * info)
 {
-    if (gUnknown_3001008 & 0xFF0)
-        *info = gUnknown_2012E60;
+    if (sRtcProbeStatus & 0xFF0)
+        *info = sDefaultRTC;
     else
-        sub_0201074C(info);
+        rtc_get_status_and_datetime(info);
 }
 
-void sub_0201071C(struct SiiRtcInfo * info)
+void rtc_get_datetime(struct SiiRtcInfo * info)
 {
-    sub_0201052C();
+    rtc_intr_disable();
     SiiRtcGetDateTime(info);
-    sub_02010544();
+    rtc_intr_enable();
 }
 
-void sub_02010734(struct SiiRtcInfo * info)
+void rtc_get_status(struct SiiRtcInfo * info)
 {
-    sub_0201052C();
+    rtc_intr_disable();
     SiiRtcGetStatus(info);
-    sub_02010544();
+    rtc_intr_enable();
 }
 
-void sub_0201074C(struct SiiRtcInfo * info)
+void rtc_get_status_and_datetime(struct SiiRtcInfo * info)
 {
-    sub_02010734(info);
-    sub_0201071C(info);
+    rtc_get_status(info);
+    rtc_get_datetime(info);
 }
 
-u16 sub_02010760(struct SiiRtcInfo * info)
+u16 rtc_validate_datetime(struct SiiRtcInfo * info)
 {
     s32 year, month, day;
     u16 r4 = (info->status & SIIRTCINFO_POWER) ? 0x20 : 0;
@@ -182,57 +182,57 @@ u16 sub_02010760(struct SiiRtcInfo * info)
     return r4;
 }
 
-void sub_02010860(void)
+void rtc_reset(void)
 {
-    sub_0201052C();
+    rtc_intr_disable();
     SiiRtcReset();
-    sub_02010544();
+    rtc_intr_enable();
 }
 
-void sub_02010874(struct SiiRtcInfo * a0, struct Time * a1, struct Time * a2)
+void rtc_sub_time_from_datetime(struct SiiRtcInfo * datetime, struct Time * dest, struct Time * timediff)
 {
-    u16 r4 = sub_02010644(a0);
-    a1->seconds = bcd_to_hex(a0->second) - a2->seconds;
-    a1->minutes = bcd_to_hex(a0->minute) - a2->minutes;
-    a1->hours = bcd_to_hex(a0->hour) - a2->hours;
-    a1->days = r4 - a2->days;
-    if (a1->seconds < 0)
+    u16 r4 = rtc_count_days_from_info(datetime);
+    dest->seconds = bcd_to_hex(datetime->second) - timediff->seconds;
+    dest->minutes = bcd_to_hex(datetime->minute) - timediff->minutes;
+    dest->hours = bcd_to_hex(datetime->hour) - timediff->hours;
+    dest->days = r4 - timediff->days;
+    if (dest->seconds < 0)
     {
-        a1->seconds += 60;
-        a1->minutes--;
+        dest->seconds += 60;
+        dest->minutes--;
     }
-    if (a1->minutes < 0)
+    if (dest->minutes < 0)
     {
-        a1->minutes += 60;
-        a1->hours--;
+        dest->minutes += 60;
+        dest->hours--;
     }
-    if (a1->hours < 0)
+    if (dest->hours < 0)
     {
-        a1->hours += 24;
-        a1->days--;
+        dest->hours += 24;
+        dest->days--;
     }
 }
 
-void sub_020108F8(struct Time * a0, struct Time * a1, struct Time * a2)
+void rtc_sub_time_from_time(struct Time * dest, struct Time * diff, struct Time * src)
 {
-    a0->seconds = a2->seconds - a1->seconds;
-    a0->minutes = a2->minutes - a1->minutes;
-    a0->hours = a2->hours - a1->hours;
-    a0->days = a2->days - a1->days;
-    if (a0->seconds < 0)
+    dest->seconds = src->seconds - diff->seconds;
+    dest->minutes = src->minutes - diff->minutes;
+    dest->hours = src->hours - diff->hours;
+    dest->days = src->days - diff->days;
+    if (dest->seconds < 0)
     {
-        a0->seconds += 60;
-        a0->minutes--;
+        dest->seconds += 60;
+        dest->minutes--;
     }
-    if (a0->minutes < 0)
+    if (dest->minutes < 0)
     {
-        a0->minutes += 60;
-        a0->hours--;
+        dest->minutes += 60;
+        dest->hours--;
     }
-    if (a0->hours < 0)
+    if (dest->hours < 0)
     {
-        a0->hours += 24;
-        a0->days--;
+        dest->hours += 24;
+        dest->days--;
     }
 }
 
@@ -254,10 +254,10 @@ void sub_02010980(struct SiiRtcInfo * info)
 
 bool32 sub_020109A8(u8 * a0)
 {
-    sub_0201074C(&gUnknown_3001020);
-    *a0 = bcd_to_hex(gUnknown_3001020.year);
-    sub_02010874(&gUnknown_3001020, &gUnknown_3001218, LocalTimeOffset);
-    sub_020108F8(&gUnknown_3001210, LastBerryTreeUpdate, &gUnknown_3001218);
+    rtc_get_status_and_datetime(&sRtcInfoWork);
+    *a0 = bcd_to_hex(sRtcInfoWork.year);
+    rtc_sub_time_from_datetime(&sRtcInfoWork, &gUnknown_3001218, LocalTimeOffset);
+    rtc_sub_time_from_time(&gUnknown_3001210, LastBerryTreeUpdate, &gUnknown_3001218);
     if (gUnknown_3001210.days * 1440 + gUnknown_3001210.hours * 60 + gUnknown_3001210.minutes >= 0)
         return TRUE;
     return FALSE;
@@ -320,28 +320,28 @@ bool32 sub_02010AE8(struct SiiRtcInfo * a0)
 
 void sub_02010B2C(void)
 {
-    sub_0201074C(&gUnknown_3001020);
-    if (bcd_to_hex(gUnknown_3001020.year) == 0 || bcd_to_hex(gUnknown_3001020.year) == 1)
+    rtc_get_status_and_datetime(&sRtcInfoWork);
+    if (bcd_to_hex(sRtcInfoWork.year) == 0 || bcd_to_hex(sRtcInfoWork.year) == 1)
     {
-        if (bcd_to_hex(gUnknown_3001020.year) == 1)
+        if (bcd_to_hex(sRtcInfoWork.year) == 1)
         {
-            gUnknown_3001020.year = 2;
-            gUnknown_3001020.month = MONTH_JAN;
-            gUnknown_3001020.day = 2;
-            sub_02010980(&gUnknown_3001020);
+            sRtcInfoWork.year = 2;
+            sRtcInfoWork.month = MONTH_JAN;
+            sRtcInfoWork.day = 2;
+            sub_02010980(&sRtcInfoWork);
         }
         else
         {
-            if (sub_02010AE8(&gUnknown_3001020) == TRUE)
+            if (sub_02010AE8(&sRtcInfoWork) == TRUE)
             {
-                sub_02010A84(&gUnknown_3001020);
-                sii_rtc_inc(&gUnknown_3001020.year);
+                sub_02010A84(&sRtcInfoWork);
+                sii_rtc_inc(&sRtcInfoWork.year);
             }
             else
             {
-                sii_rtc_inc(&gUnknown_3001020.year);
+                sii_rtc_inc(&sRtcInfoWork.year);
             }
-            sub_02010980(&gUnknown_3001020);
+            sub_02010980(&sRtcInfoWork);
         }
     }
 }

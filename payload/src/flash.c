@@ -19,8 +19,8 @@ u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1);
 u8 sub_02011568(const struct SaveBlockChunk * a1);
-u8 sub_020117E8(u8 a0, u8 * a1);
-u16 sub_02011800(void *, u16);
+u32 flash_sector_read(u8 a0, u8 * a1);
+u16 flash_sector_checksum(const void *, u16);
 
 u16 gUnknown_3001220;
 u32 gUnknown_3001224;
@@ -262,7 +262,7 @@ u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1)
     {
         gUnknown_3001234->unk_0000[r3] = r10[r3];
     }
-    gUnknown_3001234->unk_0FF6 = sub_02011800(r10, r4);
+    gUnknown_3001234->unk_0FF6 = flash_sector_checksum(r10, r4);
     return sub_02011034(r5, gUnknown_3001234->unk_0000);
 }
 #else
@@ -353,7 +353,7 @@ u8 sub_02010ECC(u16 a0, const struct SaveBlockChunk * a1)
                 "_02010F6C:\n"
                 "\tmov r0, sl\n"
                 "\tadds r1, r4, #0\n"
-                "\tbl sub_02011800\n"
+                "\tbl flash_sector_checksum\n"
                 "\tldr r1, =gUnknown_3001234\n"
                 "\tldr r1, [r1]\n"
                 "\tldr r7, =0x00000FF6\n"
@@ -388,7 +388,7 @@ u8 sub_02010FBC(u8 a0, u8 * a1, u16 a2)
     {
         r4->unk_0000[r3] = a1[r3];
     }
-    r4->unk_0FF4 = sub_02011800(a1, a2);
+    r4->unk_0FF4 = flash_sector_checksum(a1, a2);
     return sub_02011034(a0, r4);
 }
 #else
@@ -433,7 +433,7 @@ void sub_02010FBC(u8 a0, u8 * a1, u16 a2)
                 "_02010FFE:\n"
                 "\tadds r0, r5, #0\n"
                 "\tadds r1, r2, #0\n"
-                "\tbl sub_02011800\n"
+                "\tbl flash_sector_checksum\n"
                 "\tldr r1, =0x00000FF4\n"
                 "\tadds r1, r4, r1\n"
                 "\tstrh r0, [r1]\n"
@@ -539,7 +539,7 @@ u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1)
     {
         gUnknown_3001234->unk_0000[r4] = r10[r4];
     }
-    gUnknown_3001234->unk_0FF6 = sub_02011800(r10, r3);
+    gUnknown_3001234->unk_0FF6 = flash_sector_checksum(r10, r3);
     EraseFlashSector(r5);
     result = 1;
     for (r4 = 0; r4 < 0xFF8; r4++)
@@ -661,7 +661,7 @@ u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1)
                 "_0201124E:\n"
                 "\tmov r0, sl\n"
                 "\tadds r1, r3, #0\n"
-                "\tbl sub_02011800\n"
+                "\tbl flash_sector_checksum\n"
                 "\tldr r1, =gUnknown_3001234\n"
                 "\tldr r1, [r1]\n"
                 "\tldr r2, =0x00000FF6\n"
@@ -815,11 +815,11 @@ u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1)
     u16 r1;
     for (r5 = 0; r5 < 14; r5++)
     {
-        sub_020117E8(r5 + r7, gUnknown_3001234->unk_0000);
+        flash_sector_read(r5 + r7, gUnknown_3001234->unk_0000);
         r1 = gUnknown_3001234->unk_0FF4;
         if (r1 == 0)
             gUnknown_3001220 = r5;
-        r3 = sub_02011800(gUnknown_3001234->unk_0000, a1[r1].size);
+        r3 = flash_sector_checksum(gUnknown_3001234->unk_0000, a1[r1].size);
         if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025 && gUnknown_3001234->unk_0FF6 == r3)
         {
             memcpy(a1[r1].ptr, gUnknown_3001234->unk_0000, a1[r1].size);
@@ -840,11 +840,11 @@ u8 sub_02011568(const struct SaveBlockChunk * a1)
     bool32 r5 = FALSE;
     for (r4 = 0; r4 < 14; r4++)
     {
-        sub_020117E8(r4, gUnknown_3001234->unk_0000);
+        flash_sector_read(r4, gUnknown_3001234->unk_0000);
         if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025)
         {
             r5 = TRUE;
-            r2 = sub_02011800(gUnknown_3001234->unk_0000, a1[gUnknown_3001234->unk_0FF4].size);
+            r2 = flash_sector_checksum(gUnknown_3001234->unk_0000, a1[gUnknown_3001234->unk_0FF4].size);
             if (gUnknown_3001234->unk_0FF6 == r2)
             {
                 r8 = gUnknown_3001234->unk_0FFC;
@@ -865,11 +865,11 @@ u8 sub_02011568(const struct SaveBlockChunk * a1)
     r5 = 0;
     for (r4 = 0; r4 < 14; r4++)
     {
-        sub_020117E8(r4 + 14, gUnknown_3001234->unk_0000);
+        flash_sector_read(r4 + 14, gUnknown_3001234->unk_0000);
         if (*(u32 *)&gUnknown_3001234->unk_0FF8 == 0x08012025)
         {
             r5 = TRUE;
-            r2 = sub_02011800(gUnknown_3001234->unk_0000, a1[gUnknown_3001234->unk_0FF4].size);
+            r2 = flash_sector_checksum(gUnknown_3001234->unk_0000, a1[gUnknown_3001234->unk_0FF4].size);
             if (gUnknown_3001234->unk_0FF6 == r2)
             {
                 r9 = gUnknown_3001234->unk_0FFC;
@@ -941,10 +941,10 @@ u8 sub_0201177C(u8 a0, u8 * a1, u16 a2)
 {
     u16 r0;
     struct UnkEwramStruct * r5 = &UnkFlashData;
-    sub_020117E8(a0, r5->unk_0000);
+    flash_sector_read(a0, r5->unk_0000);
     if (*(u32 *)&r5->unk_0FF8 == 0x08012025)
     {
-        r0 = sub_02011800(r5->unk_0000, a2);
+        r0 = flash_sector_checksum(r5->unk_0000, a2);
         if (*(u16 *)0x2020FF4 == r0)
         {
             memcpy(a1, r5->unk_0000, a2);
@@ -966,7 +966,7 @@ u8 sub_0201177C(u8 a0, u8 * a1, u16 a2)
                 "\tlsrs r4, r2, #0x10\n"
                 "\tldr r5, =gUnknown_2020000\n"
                 "\tadds r1, r5, #0\n"
-                "\tbl sub_020117E8\n"
+                "\tbl flash_sector_read\n"
                 "\tldr r0, =0x00000FF8\n"
                 "\tadds r0, r5, r0\n"
                 "\tldr r1, [r0]\n"
@@ -975,7 +975,7 @@ u8 sub_0201177C(u8 a0, u8 * a1, u16 a2)
                 "\tbne _020117E0\n"
                 "\tadds r0, r5, #0\n"
                 "\tadds r1, r4, #0\n"
-                "\tbl sub_02011800\n"
+                "\tbl flash_sector_checksum\n"
                 "\tlsls r0, r0, #0x10\n"
                 "\tlsrs r0, r0, #0x10\n"
                 "\tldr r1, =gUnknown_2020000 + 0xFF4\n"
@@ -1011,23 +1011,23 @@ u8 sub_0201177C(u8 a0, u8 * a1, u16 a2)
 }
 #endif
 
-u8 sub_020117E8(u8 a0, u8 * a1)
+u32 flash_sector_read(u8 sectorNum, u8 * dest)
 {
-    ReadFlash(a0, 0, a1, 0x1000);
+    ReadFlash(sectorNum, 0, dest, 0x1000);
     return 1;
 }
 
-u16 sub_02011800(void * a0, u16 a1)
+u16 flash_sector_checksum(const void * src, u16 size)
 {
-    u32 r2 = 0;
+    u32 chksum = 0;
     u16 r3;
-    for (r3 = 0; r3 < a1 / sizeof(u32); r3++)
+    for (r3 = 0; r3 < size / sizeof(u32); r3++)
     {
-        r2 += *((u32 *)a0);
-        a0 += sizeof(u32);
+        chksum += *((const u32 *)src);
+        src += sizeof(u32);
 
     }
-    return (r2 >> 16) + r2;
+    return (chksum >> 16) + chksum;
 }
 
 void sub_0201182C()
@@ -1042,19 +1042,19 @@ void sub_02011834()
 {
 }
 
-u16 * sub_02011838(u16 a0)
+u16 * get_var_addr(u16 a0)
 {
-    if (a0 < 0x4000)
+    if (a0 < VARS_START)
         return NULL;
-    if (a0 < 0x8000)
-        return &gSaveBlock1.vars[a0 - 0x4000];
+    if (a0 < VAR_SPECIAL_0)
+        return &gSaveBlock1.vars[a0 - VARS_START];
     return NULL;
 }
 
 bool32 sub_02011864(void)
 {
     u8 sp0;
-    u16 * ptr = sub_02011838(VAR_PACIFIDLOG_TM_RECEIVED_DAY);
+    u16 * ptr = get_var_addr(VAR_PACIFIDLOG_TM_RECEIVED_DAY);
     sub_020109A8(&sp0);
     if (*ptr <= gUnknown_3001218.days)
         return TRUE;
@@ -1070,7 +1070,7 @@ bool32 sub_0201189C(void)
     sub_020109A8(&sp0);
     if (gUnknown_3001218.days < 0)
         return FALSE;
-    *sub_02011838(VAR_PACIFIDLOG_TM_RECEIVED_DAY) = 1;
+    *get_var_addr(VAR_PACIFIDLOG_TM_RECEIVED_DAY) = 1;
     if (sub_02010C60(0) != TRUE)
         return FALSE;
     return TRUE;
