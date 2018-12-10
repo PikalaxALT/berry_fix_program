@@ -15,7 +15,7 @@ u32 gUnknown_30011A0[0x19];
 u32 gUnknown_3001204;
 u32 gGameVersion;
 
-EWRAM_DATA u8 gUnknown_2020000[0x8000] = {};
+EWRAM_DATA u8 gSharedMem[0x8000] = {};
 
 void IntrMain(void);
 void ReadKeys(void);
@@ -78,7 +78,7 @@ void AgbMain(void)
     {
         VBlankIntrWait();
         ReadKeys();
-        main_callback(&gUnknown_3001204, gUnknown_30011A0, gUnknown_2020000);
+        main_callback(&gUnknown_3001204, gUnknown_30011A0, gSharedMem);
     }
 }
 
@@ -113,18 +113,24 @@ bool32 berry_fix_memcmp(const char * src1, const char * src2, size_t size)
     return TRUE;
 }
 
-#ifdef NONMATCHING
 s32 validate_rom_header_internal(void)
 {
-    s32 languageCode = *(RomHeaderGameCode + 3);
+    char languageCode = *(RomHeaderGameCode + 3);
     s32 softwareVersion = *RomHeaderSoftwareVersion;
     s32 shouldUpdate = -1;
     s32 i;
-    for (i = 0; i < NELEMS(gVersionData); ++i)
+    for (i = 0; i < ARRAY_COUNT(gVersionData); i++)
     {
         if (languageCode == gVersionData[i][0])
         {
-            shouldUpdate = softwareVersion < gVersionData[i][1];
+            if (softwareVersion >= gVersionData[i][1])
+            {
+                shouldUpdate = 0;
+            }
+            else
+            {
+                shouldUpdate = 1;
+            }
             break;
         }
     }
@@ -153,88 +159,6 @@ s32 validate_rom_header_internal(void)
     }
     return 6;
 }
-#else
-NAKED
-s32 validate_rom_header_internal(void)
-{
-    asm_unified("\tpush {r4, r5, r6, lr}\n"
-        "\tldr r0, =RomHeaderGameCode + 3\n"
-        "\tldrb r3, [r0]\n"
-        "\tadds r0, #0xd\n"
-        "\tldrb r4, [r0]\n"
-        "\tmovs r5, #1\n"
-        "\trsbs r5, r5, #0\n"
-        "\tmovs r2, #0\n"
-        "\tldr r1, =gVersionData + 1\n"
-        "\tsubs r0, r1, #1\n"
-        "\tb _0201026E\n"
-        "\t.pool\n"
-        "_02010264:\n"
-        "\tadds r1, #2\n"
-        "\tadds r0, #2\n"
-        "\tadds r2, #1\n"
-        "\tcmp r2, #5\n"
-        "\tbhi _0201027E\n"
-        "_0201026E:\n"
-        "\tldrb r6, [r0]\n"
-        "\tcmp r3, r6\n"
-        "\tbne _02010264\n"
-        "\tmovs r5, #1\n"
-        "\tldrb r1, [r1]\n"
-        "\tcmp r4, r1\n"
-        "\tblt _0201027E\n"
-        "\tmovs r5, #0\n"
-        "_0201027E:\n"
-        "\tmovs r0, #1\n"
-        "\trsbs r0, r0, #0\n"
-        "\tcmp r5, r0\n"
-        "\tbeq _020102E0\n"
-        "\tldr r4, =RomHeaderGameTitle\n"
-        "\tldr r1, =gRubyTitleAndCode\n"
-        "\tadds r0, r4, #0\n"
-        "\tmovs r2, #0xf\n"
-        "\tbl berry_fix_memcmp\n"
-        "\tcmp r0, #1\n"
-        "\tbne _020102B8\n"
-        "\tcmp r5, #0\n"
-        "\tbne _020102A8\n"
-        "\tmovs r0, #5\n"
-        "\tb _020102E2\n"
-        "\t.pool\n"
-        "_020102A8:\n"
-        "\tldr r1, =gGameVersion\n"
-        "\tmovs r0, #2\n"
-        "\tstr r0, [r1]\n"
-        "\tmovs r0, #3\n"
-        "\tb _020102E2\n"
-        "\t.pool\n"
-        "_020102B8:\n"
-        "\tldr r1, =gSapphireTitleAndCode\n"
-        "\tadds r0, r4, #0\n"
-        "\tmovs r2, #0xf\n"
-        "\tbl berry_fix_memcmp\n"
-        "\tadds r1, r0, #0\n"
-        "\tcmp r1, #1\n"
-        "\tbne _020102E0\n"
-        "\tcmp r5, #0\n"
-        "\tbne _020102D4\n"
-        "\tmovs r0, #4\n"
-        "\tb _020102E2\n"
-        "\t.pool\n"
-        "_020102D4:\n"
-        "\tldr r0, =gGameVersion\n"
-        "\tstr r1, [r0]\n"
-        "\tmovs r0, #2\n"
-        "\tb _020102E2\n"
-        "\t.pool\n"
-        "_020102E0:\n"
-        "\tmovs r0, #6\n"
-        "_020102E2:\n"
-        "\tpop {r4, r5, r6}\n"
-        "\tpop {r1}\n"
-        "\tbx r1");
-}
-#endif
 
 s32 validate_rom_header(void)
 {

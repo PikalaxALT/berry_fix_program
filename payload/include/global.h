@@ -25,8 +25,7 @@
 
 #define asm_unified(x) asm(".syntax unified\n" x "\n.syntax divided\n")
 
-#define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0])
-#define NELEMS ARRAY_COUNT
+#define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
 
 
 #define POKEMON_SLOTS_NUMBER 412
