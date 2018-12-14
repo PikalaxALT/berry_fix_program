@@ -2,7 +2,7 @@ gIntrTable
 gHeldKeys
 gNewKeys
 gUnknown_3001090
-gUnknown_3001190
+gUpdateNotNeeded
 gUnknown_3001194
 gUnknown_30011A0
 gUnknown_3001204

@@ -10,6 +10,15 @@ enum
     SECTOR_CHECK, // unused
 };
 
+enum MsgBoxUpdateMessage
+{
+    MSGBOX_WILL_NOW_UPDATE = 0,
+    MSGBOX_HAS_BEEN_UPDATED,
+    MSGBOX_UNABLE_TO_UPDATE,
+    MSGBOX_NO_NEED_TO_UPDATE,
+    MSGBOX_UPDATING
+};
+
 struct UnkEwramSubstruct
 {
     u8 unk0;
@@ -58,7 +67,7 @@ struct UnkSaveSection
 
 bool8 sub_02010C80(u32);
 void msg_load_gfx(void);
-void msg_display(u32);
+void msg_display(enum MsgBoxUpdateMessage);
 bool32 sub_02011864(void);
 bool32 sub_0201189C(void);
 

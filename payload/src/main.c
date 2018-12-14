@@ -4,12 +4,12 @@
 #include "rtc.h"
 #include "flash.h"
 
-static s32 gUnknown_3001000;
+static s32 gInitialWaitTimer;
 IntrFunc gIntrTable[16];
 u16 gHeldKeys;
 u16 gNewKeys;
 u8 gUnknown_3001090[0x100];
-u32 gUnknown_3001190;
+u32 gUpdateNotNeeded;
 u32 gUnknown_3001194;
 u32 gUnknown_30011A0[0x19];
 u32 gUnknown_3001204;
@@ -139,25 +139,25 @@ s32 validate_rom_header_internal(void)
         if (berry_fix_memcmp(RomHeaderGameTitle, gRubyTitleAndCode, 15) == TRUE)
         {
             if (shouldUpdate == 0)
-                return 5;
+                return RUBY_NONEED;
             else
             {
                 gGameVersion = VERSION_RUBY;
-                return 3;
+                return RUBY_UPDATABLE;
             }
         }
         else if (berry_fix_memcmp(RomHeaderGameTitle, gSapphireTitleAndCode, 15) == TRUE)
         {
             if (shouldUpdate == 0)
-                return 4;
+                return SAPPHIRE_NONEED;
             else
             {
                 gGameVersion = VERSION_SAPPHIRE;
-                return 2;
+                return SAPPHIRE_UPDATABLE;
             }
         }
     }
-    return 6;
+    return INVALID;
 }
 
 s32 validate_rom_header(void)
@@ -165,105 +165,105 @@ s32 validate_rom_header(void)
     if (*RomHeaderMakerCode == '0' && *(RomHeaderMakerCode + 1) == '1' && *RomHeaderMagic == 0x96)
         return validate_rom_header_internal();
     else
-        return 6;
+        return INVALID;
 }
 
-void main_callback(u32 * a0, void * unused1, void * unused2)
+void main_callback(u32 * state, void * unused1, void * unused2)
 {
     u8 sp0;
-    switch (*a0)
+    switch (*state)
     {
         case 0:
-            msg_display(0);
-            if (++gUnknown_3001000 >= 180)
+            msg_display(MSGBOX_WILL_NOW_UPDATE);
+            if (++gInitialWaitTimer >= 180)
             {
-                gUnknown_3001000 = 0;
-                gUnknown_3001190 = 0;
+                gInitialWaitTimer = 0;
+                gUpdateNotNeeded = 0;
                 switch (validate_rom_header())
                 {
-                    case 2: // Should Update Sapphire
-                    case 3: // Should Update Ruby
-                        ++(*a0);
+                    case SAPPHIRE_UPDATABLE:
+                    case RUBY_UPDATABLE: // Should Update Ruby
+                        ++(*state);
                         break;
-                    case 6: // Invalid header
-                        *a0 = 11;
+                    case INVALID: // Invalid header
+                        *state = 11;
                         break;
-                    case 4: // Should not update Sapphire
-                    case 5: // Should not update Ruby
-                        *a0 = 6;
+                    case SAPPHIRE_NONEED: // Should not update Sapphire
+                    case RUBY_NONEED: // Should not update Ruby
+                        *state = 6;
                         break;
                 }
             }
             break;
         case 1:
             if (!sub_02010960())
-                *a0 = 11;
+                *state = 11;
             else
-                ++(*a0);
+                ++(*state);
             break;
         case 2:
             if (sub_02010B9C() == TRUE)
-                ++(*a0);
+                ++(*state);
             else
-                *a0 = 11;
+                *state = 11;
             break;
         case 3:
             if (sub_02010C80(0) == TRUE)
-                ++(*a0);
+                ++(*state);
             else
-                *a0 = 11;
+                *state = 11;
             break;
         case 4:
             if (sub_020109A8(&sp0) == TRUE)
             {
                 if (sp0 == 0)
-                    ++(*a0);
+                    ++(*state);
                 else
-                    *a0 = 9;
+                    *state = 9;
             }
             else
             {
                 if (sp0 != 1)
-                    *a0 = 7;
+                    *state = 7;
                 else
-                    ++(*a0);
+                    ++(*state);
             }
             break;
         case 5:
             sub_02010B2C();
-            gUnknown_3001190 |= 1;
-            *a0 = 9;
+            gUpdateNotNeeded |= 1;
+            *state = 9;
             break;
         case 9:
             if (sub_02011864() == TRUE)
-                *a0 = 8;
+                *state = 8;
             else
-                *a0 = 10;
+                *state = 10;
             break;
         case 10:
-            msg_display(4);
+            msg_display(MSGBOX_UPDATING);
             if (sub_0201189C() == TRUE)
             {
-                gUnknown_3001190 |= 1;
-                *a0 = 8;
+                gUpdateNotNeeded |= 1;
+                *state = 8;
             }
             else
-                *a0 = 11;
+                *state = 11;
             break;
         case 8:
-            if (gUnknown_3001190 == 0)
-                *a0 = 6;
+            if (gUpdateNotNeeded == 0)
+                *state = 6;
             else
-                msg_display(1);
+                msg_display(MSGBOX_HAS_BEEN_UPDATED);
             break;
         case 6:
-            msg_display(3);
+            msg_display(MSGBOX_NO_NEED_TO_UPDATE);
             break;
         case 7:
-            msg_display(2);
+            msg_display(MSGBOX_UNABLE_TO_UPDATE);
             break;
         case 11:
-            msg_display(2);
+            msg_display(MSGBOX_UNABLE_TO_UPDATE);
             break;
     }
 }

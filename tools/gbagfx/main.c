@@ -34,6 +34,17 @@ void ConvertGbaToPng(char *inputPath, char *outputPath, struct GbaToPngOptions *
         image.hasPalette = false;
     }
 
+    if (options->tilemapFilePath != NULL)
+    {
+        ReadGbaTilemap(options->tilemapFilePath, &image.tileMap);
+        image.hasTilemap = true;
+    }
+    else
+    {
+        image.tileMap.data = NULL;
+        image.hasTilemap = false;
+    }
+
     ReadImage(inputPath, options->width, options->bitDepth, options->metatileWidth, options->metatileHeight, &image, !image.hasPalette);
 
     image.hasTransparency = options->hasTransparency;
@@ -48,10 +59,14 @@ void ConvertPngToGba(char *inputPath, char *outputPath, struct PngToGbaOptions *
     struct Image image;
 
     image.bitDepth = options->bitDepth;
+    image.hasTilemap = options->tilemapFilePath == NULL ? false : true;
 
     ReadPng(inputPath, &image);
 
     WriteImage(outputPath, options->numTiles, options->bitDepth, options->metatileWidth, options->metatileHeight, &image, !image.hasPalette);
+
+    if (image.hasTilemap)
+        WriteGbaTilemap(options->tilemapFilePath, &image.tileMap);
 
     FreeImage(&image);
 }
@@ -61,6 +76,7 @@ void HandleGbaToPngCommand(char *inputPath, char *outputPath, int argc, char **a
     char *inputFileExtension = GetFileExtension(inputPath);
     struct GbaToPngOptions options;
     options.paletteFilePath = NULL;
+    options.tilemapFilePath = NULL;
     options.bitDepth = inputFileExtension[0] - '0';
     options.hasTransparency = false;
     options.width = 1;
@@ -79,6 +95,15 @@ void HandleGbaToPngCommand(char *inputPath, char *outputPath, int argc, char **a
             i++;
 
             options.paletteFilePath = argv[i];
+        }
+        else if (strcmp(option, "-tilemap") == 0)
+        {
+            if (i + 1 >= argc)
+                FATAL_ERROR("No tilemap file path following \"-tilemap\".\n");
+
+            i++;
+
+            options.tilemapFilePath = argv[i];
         }
         else if (strcmp(option, "-object") == 0)
         {
@@ -144,6 +169,7 @@ void HandlePngToGbaCommand(char *inputPath, char *outputPath, int argc, char **a
     options.bitDepth = bitDepth;
     options.metatileWidth = 1;
     options.metatileHeight = 1;
+    options.tilemapFilePath = NULL;
 
     for (int i = 3; i < argc; i++)
     {
@@ -161,6 +187,14 @@ void HandlePngToGbaCommand(char *inputPath, char *outputPath, int argc, char **a
 
             if (options.numTiles < 1)
                 FATAL_ERROR("Number of tiles must be positive.\n");
+        }
+        else if (strcmp(option, "-tilemap") == 0)
+        {
+            if (i + 1 >= argc)
+                FATAL_ERROR("No tilemap path following \"-tilemap\".\n");
+
+            i++;
+            options.tilemapFilePath = argv[i];
         }
         else if (strcmp(option, "-mwidth") == 0)
         {

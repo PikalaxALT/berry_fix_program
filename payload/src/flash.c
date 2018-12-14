@@ -151,27 +151,27 @@ void msg_load_gfx(void)
     REG_DISPCNT = DISPCNT_BG0_ON;
 }
 
-void msg_display(u32 a0)
+void msg_display(enum MsgBoxUpdateMessage a0)
 {
     switch (a0)
     {
-        case 0:
+        case MSGBOX_WILL_NOW_UPDATE:
             REG_BG0HOFS = 0;
             REG_BG0VOFS = 0;
             break;
-        case 1:
+        case MSGBOX_HAS_BEEN_UPDATED:
             REG_BG0HOFS = 0x100;
             REG_BG0VOFS = 0;
             break;
-        case 2:
+        case MSGBOX_UNABLE_TO_UPDATE:
             REG_BG0HOFS = 0x100;
             REG_BG0VOFS = 0xB0;
             break;
-        case 3:
+        case MSGBOX_NO_NEED_TO_UPDATE:
             REG_BG0HOFS = 0;
             REG_BG0VOFS = 0xB0;
             break;
-        case 4:
+        case MSGBOX_UPDATING:
             REG_BG0HOFS = 0;
             REG_BG0VOFS = 0x160;
             break;
