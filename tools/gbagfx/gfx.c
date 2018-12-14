@@ -113,14 +113,12 @@ static unsigned char * BuildTilemap(struct Image *image, unsigned char * buffer,
 	unsigned char curTile2[tileSize];
 
 	for (int i = 0; i < nTilesIn; i++) {
-		bool xflip;
-		bool yflip;
+		bool xflip = false;
+		bool yflip = false;
 		int j;
 		memcpy(curTile1, buffer + i * tileSize, tileSize);
 
 		for (j = 0; j < nTilesOut; j++) {
-			xflip = false;
-			yflip = false;
 			memcpy(curTile2, outputPixels + j * tileSize, tileSize);
 			if (memcmp(curTile1, curTile2, tileSize) == 0)
 				break;
@@ -136,21 +134,16 @@ static unsigned char * BuildTilemap(struct Image *image, unsigned char * buffer,
 			hflip(curTile2, image->bitDepth);
 			if (memcmp(curTile1, curTile2, tileSize) == 0)
 				break;
+			yflip = false;
 		}
-		fprintf(stderr, "%d: 0x%03X\n", i, j);
-		if (j < nTilesOut) {
-			image->tileMap.data[i].index = j;
-			image->tileMap.data[i].xflip = xflip;
-			image->tileMap.data[i].yflip = yflip;
-			image->tileMap.data[i].palno = 0;
-		} else if (nTilesOut >= 1024) {
-			FATAL_ERROR("Cannot reduce image to 1024 or fewer tiles.\n");
-		} else {
+		image->tileMap.data[i].index = j;
+		image->tileMap.data[i].xflip = xflip;
+		image->tileMap.data[i].yflip = yflip;
+		image->tileMap.data[i].palno = 0;
+		if (j >= nTilesOut) {
+			if (nTilesOut >= 1024)
+				FATAL_ERROR("Cannot reduce image to 1024 or fewer tiles.\n");
 			memcpy(outputPixels + nTilesOut * tileSize, curTile1, tileSize);
-			image->tileMap.data[i].index = nTilesOut;
-			image->tileMap.data[i].xflip = false;
-			image->tileMap.data[i].yflip = false;
-			image->tileMap.data[i].palno = 0;
 			nTilesOut++;
 		}
 	}
