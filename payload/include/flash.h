@@ -19,14 +19,6 @@ enum MsgBoxUpdateMessage
     MSGBOX_UPDATING
 };
 
-struct UnkEwramSubstruct
-{
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-};
-
 struct SaveSector
 {
     u8 data[0xFF4];

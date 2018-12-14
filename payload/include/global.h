@@ -768,7 +768,7 @@ struct BattleTowerRecord // record mixing
     /*0x04*/ u8 name[8];
     /*0x0C*/ u8 trainerId[4];
     /*0x10*/ u16 greeting[6];
-    /*0x1C*/ struct UnknownPokemonStruct party[3];
+    /*0x1C*/ struct BattleTowerPokemon party[3];
     /*0xA0*/ u32 checksum;
 };
 
@@ -782,7 +782,7 @@ struct BattleTowerEReaderTrainer
     /*0x10*/ u16 greeting[6];
     /*0x1C*/ u16 farewellPlayerLost[6];
     /*0x28*/ u16 farewellPlayerWon[6];
-    /*0x34*/ struct UnknownPokemonStruct party[3];
+    /*0x34*/ struct BattleTowerPokemon party[3];
     /*0xB8*/ u32 checksum;
 };
 
