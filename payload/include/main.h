@@ -12,14 +12,24 @@ enum RomHeaderValidationResult
     INVALID
 };
 
+enum MainCallbackState
+{
+    MAINCB_INIT = 0,
+    MAINCB_CHECK_RTC,
+    MAINCB_CHECK_FLASH,
+    MAINCB_UPDATE_3,
+    MAINCB_UPDATE_4,
+    MAINCB_UPDATE_5
+};
+
 extern IntrFunc gIntrTable[];
 extern u16 gHeldKeys;
 extern u16 gNewKeys;
-extern u8 gUnknown_3001090[];
-extern u32 gUpdateNotNeeded;
+extern u8 gIntrVector[];
+extern u32 gUpdateSuccessful;
 extern u32 gUnknown_3001194;
 extern u32 gUnknown_30011A0[];
-extern u32 gUnknown_3001204;
+extern u32 gMainCallbackState;
 extern u32 gGameVersion;
 
 extern u8 gSharedMem[0x8000];

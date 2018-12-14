@@ -3,8 +3,8 @@
 #include "global.h"
 #include "main.h"
 
-struct Time gUnknown_3001210;
-struct Time gUnknown_3001218;
+struct Time gTimeSinceBerryUpdate;
+struct Time gRtcUTCTime;
 
 static u16 sRtcProbeStatus;
 static struct SiiRtcInfo sRtcInfoBuffer;
@@ -91,7 +91,7 @@ u16 rtc_count_days_from_info(struct SiiRtcInfo *info)
     return rtc_count_days_parameterized(bcd_to_hex(info->year), bcd_to_hex(info->month), bcd_to_hex(info->day));
 }
 
-void sub_02010680(void)
+static void rtc_probe_status(void)
 {
     sRtcProbeStatus = 0;
     rtc_intr_disable();
@@ -111,7 +111,7 @@ void sub_02010680(void)
     }
 }
 
-u16 sub_020106E0(void)
+u16 rtc_get_probe_status(void)
 {
     return sRtcProbeStatus;
 }
@@ -235,15 +235,15 @@ void rtc_sub_time_from_time(struct Time * dest, struct Time * diff, struct Time 
     }
 }
 
-bool32 sub_02010960(void)
+bool32 rtc_maincb_is_rtc_working(void)
 {
-    sub_02010680();
-    if (sub_020106E0() & 0xFF0)
+    rtc_probe_status();
+    if (rtc_get_probe_status() & 0xFF0)
         return FALSE;
     return TRUE;
 }
 
-void sub_02010980(struct SiiRtcInfo * info)
+void rtc_set_datetime(struct SiiRtcInfo * info)
 {
     vu16 imeBak = REG_IME;
     REG_IME = 0;
@@ -251,13 +251,13 @@ void sub_02010980(struct SiiRtcInfo * info)
     REG_IME = imeBak;
 }
 
-bool32 sub_020109A8(u8 * a0)
+bool32 rtc_maincb_is_time_since_last_berry_update_positive(u8 * a0)
 {
     rtc_get_status_and_datetime(&sRtcInfoWork);
     *a0 = bcd_to_hex(sRtcInfoWork.year);
-    rtc_sub_time_from_datetime(&sRtcInfoWork, &gUnknown_3001218, LocalTimeOffset);
-    rtc_sub_time_from_time(&gUnknown_3001210, LastBerryTreeUpdate, &gUnknown_3001218);
-    if (gUnknown_3001210.days * 1440 + gUnknown_3001210.hours * 60 + gUnknown_3001210.minutes >= 0)
+    rtc_sub_time_from_datetime(&sRtcInfoWork, &gRtcUTCTime, LocalTimeOffset);
+    rtc_sub_time_from_time(&gTimeSinceBerryUpdate, LastBerryTreeUpdate, &gRtcUTCTime);
+    if (gTimeSinceBerryUpdate.days * 1440 + gTimeSinceBerryUpdate.hours * 60 + gTimeSinceBerryUpdate.minutes >= 0)
         return TRUE;
     return FALSE;
 }
@@ -287,7 +287,7 @@ void sii_rtc_inc_month(struct SiiRtcInfo * a0)
     }
 }
 
-void sub_02010A84(struct SiiRtcInfo * a0)
+void sii_rtc_inc_day(struct SiiRtcInfo * a0)
 {
     sii_rtc_inc(&a0->day);
     if (bcd_to_hex(a0->day) > sDaysPerMonth[bcd_to_hex(a0->month) - 1])
@@ -300,7 +300,7 @@ void sub_02010A84(struct SiiRtcInfo * a0)
     }
 }
 
-bool32 sub_02010AE8(struct SiiRtcInfo * a0)
+bool32 rtc_is_past_feb_28_2000(struct SiiRtcInfo * a0)
 {
     if (bcd_to_hex(a0->year) == 0)
     {
@@ -317,7 +317,7 @@ bool32 sub_02010AE8(struct SiiRtcInfo * a0)
     return FALSE;
 }
 
-void sub_02010B2C(void)
+void rtc_maincb_fix_date(void)
 {
     rtc_get_status_and_datetime(&sRtcInfoWork);
     if (bcd_to_hex(sRtcInfoWork.year) == 0 || bcd_to_hex(sRtcInfoWork.year) == 1)
@@ -327,20 +327,20 @@ void sub_02010B2C(void)
             sRtcInfoWork.year = 2;
             sRtcInfoWork.month = MONTH_JAN;
             sRtcInfoWork.day = 2;
-            sub_02010980(&sRtcInfoWork);
+            rtc_set_datetime(&sRtcInfoWork);
         }
         else
         {
-            if (sub_02010AE8(&sRtcInfoWork) == TRUE)
+            if (rtc_is_past_feb_28_2000(&sRtcInfoWork) == TRUE)
             {
-                sub_02010A84(&sRtcInfoWork);
+                sii_rtc_inc_day(&sRtcInfoWork);
                 sii_rtc_inc(&sRtcInfoWork.year);
             }
             else
             {
                 sii_rtc_inc(&sRtcInfoWork.year);
             }
-            sub_02010980(&sRtcInfoWork);
+            rtc_set_datetime(&sRtcInfoWork);
         }
     }
 }

@@ -1,2 +1,2 @@
-gUnknown_3001210
-gUnknown_3001218
+gTimeSinceBerryUpdate
+gRtcUTCTime

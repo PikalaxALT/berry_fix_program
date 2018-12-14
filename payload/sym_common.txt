@@ -20,10 +20,10 @@ gSaveCounter: @ 0x03001230
 gFastSaveSection: @ 0x03001234
 	.space 0x4
 
-gUnknown_3001238:
+gCurSaveChunk:
 	.space 0x4
 
-gUnknown_300123C: @ 0x0300123C
+gFlashIdentIsValid: @ 0x0300123C
 	.space 0x4
 
 	.include "*libagb_flash.a:agb_flash.o"

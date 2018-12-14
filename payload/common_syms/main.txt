@@ -1,9 +1,9 @@
 gIntrTable
 gHeldKeys
 gNewKeys
-gUnknown_3001090
-gUpdateNotNeeded
+gIntrVector
+gUpdateSuccessful
 gUnknown_3001194
 gUnknown_30011A0
-gUnknown_3001204
+gMainCallbackState
 gGameVersion

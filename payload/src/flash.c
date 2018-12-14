@@ -15,9 +15,9 @@ struct SaveBlockChunk
 u8 WriteSaveBlockChunks(u16 a0, const struct SaveBlockChunk * a1);
 u8 WriteSingleChunk(u16 a0, const struct SaveBlockChunk * a1);
 u8 TryWriteSector(u8, u8 *);
-u8 sub_020111AC(u16 a0, const struct SaveBlockChunk * a1);
-u8 sub_02011470(u16 a0, const struct SaveBlockChunk * a1);
-u8 sub_020114B0(u16 a0, const struct SaveBlockChunk * a1);
+u8 EraseCurrentChunk(u16 a0, const struct SaveBlockChunk * a1);
+u8 TryReadAllSaveSectorsCurrentSlot(u16 a0, const struct SaveBlockChunk * a1);
+u8 ReadAllSaveSectorsCurrentSlot(u16 a0, const struct SaveBlockChunk * a1);
 u8 GetSaveValidStatus(const struct SaveBlockChunk * a1);
 u32 DoReadFlashWholeSection(u8 a0, struct SaveSector * a1);
 u16 CalculateChecksum(const void *, u16);
@@ -28,8 +28,8 @@ u16 gLastKnownGoodSector;
 u32 gDamagedSaveSectors;
 u32 gSaveCounter;
 struct SaveSector * gFastSaveSection;
-u16 gUnknown_3001238;
-bool32 gUnknown_300123C;
+u16 gCurSaveChunk;
+bool32 gFlashIdentIsValid;
 
 EWRAM_DATA struct SaveBlock2 gSaveBlock2 = {};
 EWRAM_DATA struct SaveBlock1 gSaveBlock1 = {};
@@ -45,7 +45,7 @@ EWRAM_DATA struct PokemonStorage gPokemonStorage = {};
     min(sizeof(structure) - chunkNum * SECTOR_DATA_SIZE, SECTOR_DATA_SIZE)  \
 }                                                                           \
 
-const struct SaveBlockChunk gUnknown_2012E9C[] =
+static const struct SaveBlockChunk sSaveBlockChunks[] =
 {
     SAVEBLOCK_CHUNK(gSaveBlock2, 0),
 
@@ -65,43 +65,43 @@ const struct SaveBlockChunk gUnknown_2012E9C[] =
     SAVEBLOCK_CHUNK(gPokemonStorage, 8),
 };
 
-const u16 gUnknown_2012F0C[] = INCBIN_U16("graphics/unk_2F0C.gbapal");
-const u8 gUnknown_2012F2C[] = INCBIN_U8("graphics/unk_2F2C.tilemap.lz");
-const u8 gUnknown_2013758[] = INCBIN_U8("graphics/unk_3758.4bpp.lz");
+const u16 gInfoMessagesPal[] = INCBIN_U16("graphics/unk_2F0C.gbapal");
+const u8 gInfoMessagesTilemap[] = INCBIN_U8("graphics/unk_2F2C.tilemap.lz");
+const u8 gInfoMessagesGfx[] = INCBIN_U8("graphics/unk_3758.4bpp.lz");
 
-bool32 sub_02010B9C(void)
+bool32 flash_maincb_ident_is_valid(void)
 {
-    gUnknown_300123C = TRUE;
+    gFlashIdentIsValid = TRUE;
     if (!IdentifyFlash())
     {
         SetFlashTimerIntr(0, &((IntrFunc *)gIntrFuncPointers)[9]);
         return TRUE;
     }
-    gUnknown_300123C = FALSE;
+    gFlashIdentIsValid = FALSE;
     return FALSE;
 }
 
-void sub_02010BCC(u16 sectorNum, ptrdiff_t offset, void * dest, size_t size)
+void Call_ReadFlash(u16 sectorNum, ptrdiff_t offset, void * dest, size_t size)
 {
     ReadFlash(sectorNum, offset, dest, size);
 }
 
-u8 sub_02010BDC(u16 a0, const struct SaveBlockChunk * a1)
+u8 Call_WriteSaveBlockChunks(u16 a0, const struct SaveBlockChunk * a1)
 {
     return WriteSaveBlockChunks(a0, a1);
 }
 
-u8 sub_02010BF0(u16 a0, const struct SaveBlockChunk * a1)
+u8 Call_TryReadAllSaveSectorsCurrentSlot(u16 a0, const struct SaveBlockChunk * a1)
 {
-    return sub_02011470(a0, a1);
+    return TryReadAllSaveSectorsCurrentSlot(a0, a1);
 }
 
-u32 * sub_02010C04(void)
+u32 * GetDamagedSaveSectorsPtr(void)
 {
     return &gDamagedSaveSectors;
 }
 
-s32 sub_02010C0C(u8 a0)
+s32 flash_write_save_block_chunks(u8 a0)
 {
     u8 i;
 
@@ -109,33 +109,33 @@ s32 sub_02010C0C(u8 a0)
     {
         case 0:
         default:
-            sub_02010BDC(0xFFFF, gUnknown_2012E9C);
+            Call_WriteSaveBlockChunks(0xFFFF, sSaveBlockChunks);
             break;
         case 1:
             for (i = 0; i < 5; i++)
             {
-                sub_02010BDC(i, gUnknown_2012E9C);
+                Call_WriteSaveBlockChunks(i, sSaveBlockChunks);
             }
             break;
         case 2:
-            sub_02010BDC(0, gUnknown_2012E9C);
+            Call_WriteSaveBlockChunks(0, sSaveBlockChunks);
             break;
     }
 
     return 0;
 }
 
-u8 sub_02010C60(u8 a0)
+u8 flash_write_save_block_chunks_check_damage(u8 a0)
 {
-    sub_02010C0C(a0);
-    if (*sub_02010C04() == 0)
+    flash_write_save_block_chunks(a0);
+    if (*GetDamagedSaveSectorsPtr() == 0)
         return 1;
     return 0xFF;
 }
 
-u8 sub_02010C80(u32 unused)
+u8 flash_maincb_read_save(u32 unused)
 {
-    return sub_02010BF0(0xFFFF, gUnknown_2012E9C);
+    return Call_TryReadAllSaveSectorsCurrentSlot(0xFFFF, sSaveBlockChunks);
 }
 
 void msg_load_gfx(void)
@@ -144,9 +144,9 @@ void msg_load_gfx(void)
     REG_BG0HOFS = 0;
     REG_BG0VOFS = 0;
     REG_BLDCNT = 0;
-    LZ77UnCompVram(gUnknown_2013758, (void *)BG_VRAM);
-    LZ77UnCompVram(gUnknown_2012F2C, (void *)BG_SCREEN_ADDR(28));
-    CpuCopy16(gUnknown_2012F0C, (void *)BG_PLTT, 0x200);
+    LZ77UnCompVram(gInfoMessagesGfx, (void *)BG_VRAM);
+    LZ77UnCompVram(gInfoMessagesTilemap, (void *)BG_SCREEN_ADDR(28));
+    CpuCopy16(gInfoMessagesPal, (void *)BG_PLTT, 0x200);
     REG_BG0CNT = BGCNT_SCREENBASE(28) | BGCNT_TXT512x512;
     REG_DISPCNT = DISPCNT_BG0_ON;
 }
@@ -316,7 +316,7 @@ u32 RestoreSaveBackupVarsAndIncrement(const struct SaveBlockChunk *chunk) // chu
     gFirstSaveSector++;
     gFirstSaveSector %= NUM_SECTORS_PER_SAVE_SLOT;
     gSaveCounter++;
-    gUnknown_3001238 = 0;
+    gCurSaveChunk = 0;
     gDamagedSaveSectors = 0;
     return 0;
 }
@@ -326,20 +326,20 @@ u32 RestoreSaveBackupVars(const struct SaveBlockChunk *chunk)
     gFastSaveSection = eSaveSection;
     gLastKnownGoodSector = gFirstSaveSector;
     gPrevSaveCounter = gSaveCounter;
-    gUnknown_3001238 = 0;
+    gCurSaveChunk = 0;
     gDamagedSaveSectors = 0;
     return 0;
 }
 
-u8 sub_02011000(u16 a1, const struct SaveBlockChunk * chunk)
+u8 WriteSingleChunkAndIncrement(u16 a1, const struct SaveBlockChunk * chunk)
 {
     u8 retVal;
 
-    if (gUnknown_3001238 < a1 - 1)
+    if (gCurSaveChunk < a1 - 1)
     {
         retVal = SAVE_STATUS_OK;
-        WriteSingleChunk(gUnknown_3001238, chunk);
-        gUnknown_3001238++;
+        WriteSingleChunk(gCurSaveChunk, chunk);
+        gCurSaveChunk++;
         if (gDamagedSaveSectors)
         {
             retVal = SAVE_STATUS_ERROR;
@@ -355,11 +355,11 @@ u8 sub_02011000(u16 a1, const struct SaveBlockChunk * chunk)
     return retVal;
 }
 
-u8 sub_02011160(u16 a1, const struct SaveBlockChunk *chunk)
+u8 ErasePreviousChunk(u16 a1, const struct SaveBlockChunk *chunk)
 {
     u8 retVal = SAVE_STATUS_OK;
 
-    sub_020111AC(a1 - 1, chunk);
+    EraseCurrentChunk(a1 - 1, chunk);
 
     if (gDamagedSaveSectors)
     {
@@ -370,7 +370,7 @@ u8 sub_02011160(u16 a1, const struct SaveBlockChunk *chunk)
     return retVal;
 }
 
-u8 sub_020111AC(u16 chunkId, const struct SaveBlockChunk *chunks)
+u8 EraseCurrentChunk(u16 chunkId, const struct SaveBlockChunk *chunks)
 {
     u16 i;
     u16 sector;
@@ -494,7 +494,7 @@ u8 WriteSomeFlashByte0x25ToPrevSector(u16 a1, const struct SaveBlockChunk *chunk
     }
 }
 
-u8 sub_02011470(u16 a1, const struct SaveBlockChunk *chunk)
+u8 TryReadAllSaveSectorsCurrentSlot(u16 a1, const struct SaveBlockChunk *chunk)
 {
     u8 retVal;
     gFastSaveSection = eSaveSection;
@@ -505,13 +505,13 @@ u8 sub_02011470(u16 a1, const struct SaveBlockChunk *chunk)
     else
     {
         retVal = GetSaveValidStatus(chunk);
-        sub_020114B0(0xFFFF, chunk);
+        ReadAllSaveSectorsCurrentSlot(0xFFFF, chunk);
     }
 
     return retVal;
 }
 
-u8 sub_020114B0(u16 a1, const struct SaveBlockChunk *chunks)
+u8 ReadAllSaveSectorsCurrentSlot(u16 a1, const struct SaveBlockChunk *chunks)
 {
     u16 i;
     u16 checksum;
@@ -705,15 +705,15 @@ u16 CalculateChecksum(const void *data, u16 size)
     return ((checksum >> 16) + checksum);
 }
 
-void sub_0201182C()
+void nullsub_0201182C()
 {
 }
 
-void sub_02011830()
+void nullsub_02011830()
 {
 }
 
-void sub_02011834()
+void nullsub_02011834()
 {
 }
 
@@ -726,27 +726,27 @@ u16 * get_var_addr(u16 a0)
     return NULL;
 }
 
-bool32 sub_02011864(void)
+bool32 flash_maincb_check_need_reset_pacifidlog_tm(void)
 {
     u8 sp0;
     u16 * data = get_var_addr(VAR_PACIFIDLOG_TM_RECEIVED_DAY);
-    sub_020109A8(&sp0);
-    if (*data <= gUnknown_3001218.days)
+    rtc_maincb_is_time_since_last_berry_update_positive(&sp0);
+    if (*data <= gRtcUTCTime.days)
         return TRUE;
     else
         return FALSE;
 }
 
-bool32 sub_0201189C(void)
+bool32 flash_maincb_reset_pacifidlog_tm(void)
 {
     u8 sp0;
-    if (sub_02011864() == TRUE)
+    if (flash_maincb_check_need_reset_pacifidlog_tm() == TRUE)
         return TRUE;
-    sub_020109A8(&sp0);
-    if (gUnknown_3001218.days < 0)
+    rtc_maincb_is_time_since_last_berry_update_positive(&sp0);
+    if (gRtcUTCTime.days < 0)
         return FALSE;
     *get_var_addr(VAR_PACIFIDLOG_TM_RECEIVED_DAY) = 1;
-    if (sub_02010C60(0) != TRUE)
+    if (flash_write_save_block_chunks_check_damage(0) != TRUE)
         return FALSE;
     return TRUE;
 }

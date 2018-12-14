@@ -8,36 +8,34 @@ static s32 gInitialWaitTimer;
 IntrFunc gIntrTable[16];
 u16 gHeldKeys;
 u16 gNewKeys;
-u8 gUnknown_3001090[0x100];
-u32 gUpdateNotNeeded;
+u8 gIntrVector[0x100];
+u32 gUpdateSuccessful;
 u32 gUnknown_3001194;
 u32 gUnknown_30011A0[0x19];
-u32 gUnknown_3001204;
+u32 gMainCallbackState;
 u32 gGameVersion;
 
 EWRAM_DATA u8 gSharedMem[0x8000] = {};
 
 void IntrMain(void);
 void ReadKeys(void);
-void sub_020101C0(void);
-void sub_020101BC(void);
+void dummy_intr_0(void);
+void dummy_intr_1(void);
 void main_callback(u32 *, void *, void *);
-bool32 sub_02010B9C(void);
-bool8 sub_02010C80(u32);
 
 
 const char gBerryFixGameCode[] = "AGBJ";
 const IntrFunc gIntrFuncPointers[] = {
-    sub_020101C0,
-    sub_020101BC,
-    sub_020101C0,
-    sub_020101C0,
-    sub_020101C0,
-    sub_020101C0,
-    sub_020101C0,
-    sub_020101C0,
-    sub_020101C0,
-    sub_020101C0,
+    dummy_intr_0,
+    dummy_intr_1,
+    dummy_intr_0,
+    dummy_intr_0,
+    dummy_intr_0,
+    dummy_intr_0,
+    dummy_intr_0,
+    dummy_intr_0,
+    dummy_intr_0,
+    dummy_intr_0,
     NULL,
     NULL,
     NULL
@@ -52,40 +50,40 @@ const char gVersionData[][2] = {
 };
 const char gRubyTitleAndCode[] = "POKEMON RUBYAXV";
 const char gSapphireTitleAndCode[] = "POKEMON SAPPAXP";
-const u16 gUnknown_2012CF8[20] = {
+const u16 sDebugPals[20] = {
     RGB(00, 00, 00),
     RGB(31, 00, 00),
     RGB(00, 31, 00),
     RGB(00, 00, 31)
 };
-const u16 gUnknown_2012D20[] = INCBIN_U16("graphics/unk_2D20.4bpp");
+const u16 sDebugDigitsGfx[] = INCBIN_U16("graphics/unk_2D20.4bpp");
 
 void AgbMain(void)
 {
     RegisterRamReset(0x1E);
     DmaCopy32(3, gIntrFuncPointers, gIntrTable, sizeof gIntrFuncPointers);
-    DmaCopy32(3, IntrMain, gUnknown_3001090, sizeof(gUnknown_3001090));
-    INTR_VECTOR = gUnknown_3001090;
+    DmaCopy32(3, IntrMain, gIntrVector, sizeof(gIntrVector));
+    INTR_VECTOR = gIntrVector;
     REG_IE = INTR_FLAG_VBLANK;
     if (*RomHeaderMagic == 0x96 && *(u32 *)RomHeaderGameCode == *(u32 *)gBerryFixGameCode)
         REG_IE |= INTR_FLAG_GAMEPAK;
     REG_DISPSTAT = DISPSTAT_VBLANK_INTR;
     REG_IME = INTR_FLAG_VBLANK;
     msg_load_gfx();
-    gUnknown_3001204 = 0;
+    gMainCallbackState = 0;
     gUnknown_3001194 = 0;
     for (;;)
     {
         VBlankIntrWait();
         ReadKeys();
-        main_callback(&gUnknown_3001204, gUnknown_30011A0, gSharedMem);
+        main_callback(&gMainCallbackState, gUnknown_30011A0, gSharedMem);
     }
 }
 
-void sub_020101BC(void)
+void dummy_intr_1(void)
 {}
 
-void sub_020101C0(void)
+void dummy_intr_0(void)
 {}
 
 void ReadKeys(void)
@@ -178,7 +176,7 @@ void main_callback(u32 * state, void * unused1, void * unused2)
             if (++gInitialWaitTimer >= 180)
             {
                 gInitialWaitTimer = 0;
-                gUpdateNotNeeded = 0;
+                gUpdateSuccessful = 0;
                 switch (validate_rom_header())
                 {
                     case SAPPHIRE_UPDATABLE:
@@ -196,25 +194,25 @@ void main_callback(u32 * state, void * unused1, void * unused2)
             }
             break;
         case 1:
-            if (!sub_02010960())
+            if (!rtc_maincb_is_rtc_working())
                 *state = 11;
             else
                 ++(*state);
             break;
         case 2:
-            if (sub_02010B9C() == TRUE)
+            if (flash_maincb_ident_is_valid() == TRUE)
                 ++(*state);
             else
                 *state = 11;
             break;
         case 3:
-            if (sub_02010C80(0) == TRUE)
+            if (flash_maincb_read_save(0) == SAVE_STATUS_OK)
                 ++(*state);
             else
                 *state = 11;
             break;
         case 4:
-            if (sub_020109A8(&sp0) == TRUE)
+            if (rtc_maincb_is_time_since_last_berry_update_positive(&sp0) == TRUE)
             {
                 if (sp0 == 0)
                     ++(*state);
@@ -230,28 +228,28 @@ void main_callback(u32 * state, void * unused1, void * unused2)
             }
             break;
         case 5:
-            sub_02010B2C();
-            gUpdateNotNeeded |= 1;
+            rtc_maincb_fix_date();
+            gUpdateSuccessful |= 1;
             *state = 9;
             break;
         case 9:
-            if (sub_02011864() == TRUE)
+            if (flash_maincb_check_need_reset_pacifidlog_tm() == TRUE)
                 *state = 8;
             else
                 *state = 10;
             break;
         case 10:
             msg_display(MSGBOX_UPDATING);
-            if (sub_0201189C() == TRUE)
+            if (flash_maincb_reset_pacifidlog_tm() == TRUE)
             {
-                gUpdateNotNeeded |= 1;
+                gUpdateSuccessful |= 1;
                 *state = 8;
             }
             else
                 *state = 11;
             break;
         case 8:
-            if (gUpdateNotNeeded == 0)
+            if (gUpdateSuccessful == 0)
                 *state = 6;
             else
                 msg_display(MSGBOX_HAS_BEEN_UPDATED);
@@ -268,14 +266,14 @@ void main_callback(u32 * state, void * unused1, void * unused2)
     }
 }
 
-void sub_02010490(void)
+void DBG_LoadDigitsPal(void)
 {
     register u16 * dest asm("r3");
     const u16 * src;
     s32 i;
     dest = (u16 *)BG_PLTT + 1;
     DmaFill16(3, RGB(31, 31, 31), (void *)BG_PLTT, BG_PLTT_SIZE);
-    src = gUnknown_2012CF8;
+    src = sDebugPals;
     for (i = 0; i < 4; i++)
     {
         *dest = *src;
@@ -284,9 +282,9 @@ void sub_02010490(void)
     }
 }
 
-void sub_020104DC(void)
+void DBG_LoadDigits(void)
 {
     DmaFill16(3, 0x1111, (void *)VRAM + 0x8420, 0x1800);
-    DmaCopy32(3, gUnknown_2012D20, (void *)VRAM + 0x8600, 0x200);
-    sub_02010490();
+    DmaCopy32(3, sDebugDigitsGfx, (void *)VRAM + 0x8600, 0x200);
+    DBG_LoadDigitsPal();
 }
