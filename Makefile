@@ -92,10 +92,12 @@ clean: tidy
 	rm -f sound/direct_sound_samples/*.bin
 	rm -f $(SONG_OBJS) $(MID_OBJS) $(MID_SUBDIR)/*.s
 	find . \( -iname '*.1bpp' -o -iname '*.4bpp' -o -iname '*.8bpp' -o -iname '*.gbapal' -o -iname '*.lz' -o -iname '*.latfont' -o -iname '*.hwjpnfont' -o -iname '*.fwjpnfont' \) -exec rm {} +
+	make -C payload clean
 
 tidy:
 	rm -f $(ROM) $(ELF) $(MAP)
 	rm -r build/*
+	make -C payload tidy
 
 %.s: ;
 %.png: ;
@@ -137,11 +139,21 @@ else
 $(DATA_ASM_BUILDDIR)/%.o: data_dep = $(shell $(SCANINC) $(DATA_ASM_SUBDIR)/$*.s)
 endif
 
+payload: data/payload.gba.lz
+
 payload/payload.gba:
 	$(MAKE) -C payload/
 
+ifeq ($(OS), Windows_NT)
+SDK := $(HOME)/nintendo_agbsdk
+LZ := $(SDK)/bin/agbcomp
+data/payload.gba.lz: payload/payload.gba
+	$(LZ) -bl $<
+	mv $(<:%.gba=%_LZ.bin) $@
+else
 data/payload.gba.lz: payload/payload.gba
 	$(GFX) $< $@
+endif
 
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s $$(data_dep)
 	$(PREPROC) $< charmap.txt | $(CPP) -I include | $(AS) $(ASFLAGS) -o $@
