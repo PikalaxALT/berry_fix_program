@@ -444,7 +444,7 @@ void FreeImage(struct Image *image)
 {
 	free(image->pixels);
 	image->pixels = NULL;
-	if (image->tileMap.data != NULL) {
+	if (image->hasTilemap && image->tileMap.data != NULL) {
 		free(image->tileMap.data);
 		image->tileMap.data = NULL;
 		image->tileMap.numTiles = 0;

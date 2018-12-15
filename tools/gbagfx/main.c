@@ -60,6 +60,8 @@ void ConvertPngToGba(char *inputPath, char *outputPath, struct PngToGbaOptions *
 
     image.bitDepth = options->bitDepth;
     image.hasTilemap = options->tilemapFilePath == NULL ? false : true;
+    image.tileMap.data = NULL;
+    image.tileMap.numTiles = 0;
 
     ReadPng(inputPath, &image);
 
