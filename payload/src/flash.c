@@ -65,9 +65,9 @@ static const struct SaveBlockChunk sSaveBlockChunks[] =
     SAVEBLOCK_CHUNK(gPokemonStorage, 8),
 };
 
-const u16 gInfoMessagesPal[] = INCBIN_U16("graphics/unk_2F0C.gbapal");
-const u8 gInfoMessagesTilemap[] = INCBIN_U8("graphics/unk_2F2C.tilemap.lz");
-const u8 gInfoMessagesGfx[] = INCBIN_U8("graphics/unk_3758.4bpp.lz");
+const u16 gInfoMessagesPal[] = INCBIN_U16("graphics/msg_box.gbapal");
+const u8 gInfoMessagesTilemap[] = INCBIN_U8("graphics/msg_box.tilemap.lz");
+const u8 gInfoMessagesGfx[] = INCBIN_U8("graphics/msg_box.4bpp.lz");
 
 bool32 flash_maincb_ident_is_valid(void)
 {
