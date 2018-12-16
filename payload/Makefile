@@ -13,7 +13,6 @@ SHELL := /bin/bash -o pipefail
 CPPFLAGS := -I ../tools/agbcc/include -I ../tools/agbcc -iquote include -nostdinc -undef
 
 ROM := payload.gba
-ROMLZ := $(ROM).lz
 OBJ_DIR := build
 CC1             := ../tools/agbcc/bin/agbcc$(EXE)
 override CFLAGS += -mthumb-interwork -Wimplicit -Wparentheses -Werror -O2 -fhex-asm
@@ -79,7 +78,7 @@ SUBDIRS  := $(sort $(dir $(OBJS)))
 
 $(shell mkdir -p $(SUBDIRS))
 
-rom: $(ROMLZ)
+rom: $(ROM)
 
 # For contributors to make sure a change didn't affect the contents of the ROM.
 compare: $(ROM)
