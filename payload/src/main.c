@@ -56,7 +56,7 @@ const u16 sDebugPals[20] = {
     RGB(00, 31, 00),
     RGB(00, 00, 31)
 };
-const u16 sDebugDigitsGfx[] = INCBIN_U16("graphics/unk_2D20.4bpp");
+const u16 sDebugDigitsGfx[] = INCBIN_U16("graphics/debug_digits.4bpp");
 
 void AgbMain(void)
 {
@@ -70,7 +70,7 @@ void AgbMain(void)
     REG_DISPSTAT = DISPSTAT_VBLANK_INTR;
     REG_IME = INTR_FLAG_VBLANK;
     msg_load_gfx();
-    gMainCallbackState = 0;
+    gMainCallbackState = MAINCB_INIT;
     gUnknown_3001194 = 0;
     for (;;)
     {
@@ -168,10 +168,10 @@ s32 validate_rom_header(void)
 
 void main_callback(u32 * state, void * unused1, void * unused2)
 {
-    u8 sp0;
+    u8 year;
     switch (*state)
     {
-        case 0:
+        case MAINCB_INIT:
             msg_display(MSGBOX_WILL_NOW_UPDATE);
             if (++gInitialWaitTimer >= 180)
             {
@@ -181,86 +181,86 @@ void main_callback(u32 * state, void * unused1, void * unused2)
                 {
                     case SAPPHIRE_UPDATABLE:
                     case RUBY_UPDATABLE: // Should Update Ruby
-                        ++(*state);
+                        ++(*state); // MAINCB_CHECK_RTC
                         break;
                     case INVALID: // Invalid header
-                        *state = 11;
+                        *state = MAINCB_ERROR;
                         break;
                     case SAPPHIRE_NONEED: // Should not update Sapphire
                     case RUBY_NONEED: // Should not update Ruby
-                        *state = 6;
+                        *state = MAINCB_NO_NEED_TO_FIX;
                         break;
                 }
             }
             break;
-        case 1:
+        case MAINCB_CHECK_RTC:
             if (!rtc_maincb_is_rtc_working())
-                *state = 11;
+                *state = MAINCB_ERROR;
             else
-                ++(*state);
+                ++(*state); // MAINCB_CHECK_FLASH
             break;
-        case 2:
+        case MAINCB_CHECK_FLASH:
             if (flash_maincb_ident_is_valid() == TRUE)
-                ++(*state);
+                ++(*state); // MAINCB_READ_SAVE
             else
-                *state = 11;
+                *state = MAINCB_ERROR;
             break;
-        case 3:
+        case MAINCB_READ_SAVE:
             if (flash_maincb_read_save(0) == SAVE_STATUS_OK)
-                ++(*state);
+                ++(*state); // MAINCB_CHECK_TIME
             else
-                *state = 11;
+                *state = MAINCB_ERROR;
             break;
-        case 4:
-            if (rtc_maincb_is_time_since_last_berry_update_positive(&sp0) == TRUE)
+        case MAINCB_CHECK_TIME:
+            if (rtc_maincb_is_time_since_last_berry_update_positive(&year) == TRUE)
             {
-                if (sp0 == 0)
-                    ++(*state);
+                if (year == 0)
+                    ++(*state); // MAINCB_FIX_DATE
                 else
-                    *state = 9;
+                    *state = MAINCB_CHECK_PACIFIDLOG_TM;
             }
             else
             {
-                if (sp0 != 1)
-                    *state = 7;
+                if (year != 1)
+                    *state = MAINCB_YEAR_MAKES_NO_SENSE;
                 else
-                    ++(*state);
+                    ++(*state); // MAINCB_FIX_DATE
             }
             break;
-        case 5:
+        case MAINCB_FIX_DATE:
             rtc_maincb_fix_date();
             gUpdateSuccessful |= 1;
-            *state = 9;
+            *state = MAINCB_CHECK_PACIFIDLOG_TM;
             break;
-        case 9:
+        case MAINCB_CHECK_PACIFIDLOG_TM:
             if (flash_maincb_check_need_reset_pacifidlog_tm() == TRUE)
-                *state = 8;
+                *state = MAINCB_FINISHED;
             else
-                *state = 10;
+                *state = MAINCB_FIX_PACIFIDLOG_TM;
             break;
-        case 10:
+        case MAINCB_FIX_PACIFIDLOG_TM:
             msg_display(MSGBOX_UPDATING);
             if (flash_maincb_reset_pacifidlog_tm() == TRUE)
             {
                 gUpdateSuccessful |= 1;
-                *state = 8;
+                *state = MAINCB_FINISHED;
             }
             else
-                *state = 11;
+                *state = MAINCB_ERROR;
             break;
-        case 8:
+        case MAINCB_FINISHED:
             if (gUpdateSuccessful == 0)
-                *state = 6;
+                *state = MAINCB_NO_NEED_TO_FIX;
             else
                 msg_display(MSGBOX_HAS_BEEN_UPDATED);
             break;
-        case 6:
+        case MAINCB_NO_NEED_TO_FIX:
             msg_display(MSGBOX_NO_NEED_TO_UPDATE);
             break;
-        case 7:
+        case MAINCB_YEAR_MAKES_NO_SENSE:
             msg_display(MSGBOX_UNABLE_TO_UPDATE);
             break;
-        case 11:
+        case MAINCB_ERROR:
             msg_display(MSGBOX_UNABLE_TO_UPDATE);
             break;
     }
@@ -268,11 +268,10 @@ void main_callback(u32 * state, void * unused1, void * unused2)
 
 void DBG_LoadDigitsPal(void)
 {
-    register u16 * dest asm("r3");
     const u16 * src;
     s32 i;
-    dest = (u16 *)BG_PLTT + 1;
-    DmaFill16(3, RGB(31, 31, 31), (void *)BG_PLTT, BG_PLTT_SIZE);
+    register vu16 * dest asm("r3") = (vu16 *)BG_PLTT + 1;
+    DmaFill16(3, RGB(31, 31, 31), (vu16 *)BG_PLTT, BG_PLTT_SIZE);
     src = sDebugPals;
     for (i = 0; i < 4; i++)
     {
