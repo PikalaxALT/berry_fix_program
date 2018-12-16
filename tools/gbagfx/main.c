@@ -355,6 +355,7 @@ void HandlePngToFullwidthJapaneseFontCommand(char *inputPath, char *outputPath, 
 void HandleLZCompressCommand(char *inputPath, char *outputPath, int argc, char **argv)
 {
     int overflowSize = 0;
+    int minDistance = 2; // default, for compatibility with LZ77UnCompVram()
 
     for (int i = 3; i < argc; i++)
     {
@@ -373,6 +374,19 @@ void HandleLZCompressCommand(char *inputPath, char *outputPath, int argc, char *
             if (overflowSize < 1)
                 FATAL_ERROR("Overflow size must be positive.\n");
         }
+        else if (strcmp(option, "-search") == 0)
+        {
+            if (i + 1 >= argc)
+                FATAL_ERROR("No size following \"-overflow\".\n");
+
+            i++;
+
+            if (!ParseNumber(argv[i], NULL, 10, &minDistance))
+                FATAL_ERROR("Failed to parse LZ min search distance.\n");
+
+            if (minDistance < 1)
+                FATAL_ERROR("LZ min search distance must be positive.\n");
+        }
         else
         {
             FATAL_ERROR("Unrecognized option \"%s\".\n", option);
@@ -389,7 +403,7 @@ void HandleLZCompressCommand(char *inputPath, char *outputPath, int argc, char *
     unsigned char *buffer = ReadWholeFileZeroPadded(inputPath, &fileSize, overflowSize);
 
     int compressedSize;
-    unsigned char *compressedData = LZCompress(buffer, fileSize + overflowSize, &compressedSize);
+    unsigned char *compressedData = LZCompress(buffer, fileSize + overflowSize, &compressedSize, minDistance);
 
     compressedData[1] = (unsigned char)fileSize;
     compressedData[2] = (unsigned char)(fileSize >> 8);

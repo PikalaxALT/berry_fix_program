@@ -144,16 +144,8 @@ payload: data/payload.gba.lz
 payload/payload.gba:
 	$(MAKE) -C payload/
 
-ifeq ($(OS), Windows_NT)
-SDK := $(HOME)/nintendo_agbsdk
-LZ := $(SDK)/bin/agbcomp
 data/payload.gba.lz: payload/payload.gba
-	$(LZ) -bl $<
-	mv $(<:%.gba=%_LZ.bin) $@
-else
-data/payload.gba.lz: payload/payload.gba
-	$(GFX) $< $@
-endif
+	$(GFX) $< $@ -search 1
 
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s $$(data_dep)
 	$(PREPROC) $< charmap.txt | $(CPP) -I include | $(AS) $(ASFLAGS) -o $@
